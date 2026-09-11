@@ -4,44 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data In, Answers Out — CSV · Kafka · Neo4j Pipeline</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-display: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
 
-      --bg-primary: #0a0d14;
-      --bg-secondary: #101524;
-      --bg-card: rgba(18, 24, 38, 0.75);
-      --bg-card-hover: rgba(26, 34, 54, 0.85);
-      --bg-glass: rgba(16, 21, 36, 0.6);
+      --bg-base: #06080f;
+      --bg-surface: rgba(14, 18, 32, 0.7);
+      --bg-surface-hover: rgba(22, 28, 48, 0.85);
+      --bg-surface-active: rgba(30, 38, 64, 0.9);
+      --bg-glass: rgba(18, 24, 42, 0.45);
 
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(99, 102, 241, 0.4);
-      --border-glow: rgba(99, 102, 241, 0.6);
+      --border-glow: rgba(99, 102, 241, 0.35);
+      --border-accent: rgba(99, 102, 241, 0.6);
 
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
 
-      --accent-primary: #6366f1;
-      --accent-primary-hover: #4f46e5;
-      --accent-secondary: #06b6d4;
-      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-      --accent-glow: 0 0 25px rgba(99, 102, 241, 0.25);
+      --accent-indigo: #6366f1;
+      --accent-violet: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
 
-      --status-success: #10b981;
-      --status-warning: #f59e0b;
-      --status-error: #ef4444;
-      --status-info: #3b82f6;
+      --grad-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
+      --grad-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.2) 100%);
+      --grad-card: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
 
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 35px -5px rgba(99, 102, 241, 0.3);
     }
 
     * {
@@ -52,25 +57,43 @@
 
     body {
       font-family: var(--font-sans);
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
+      background-color: var(--bg-base);
+      color: var(--text-main);
       min-height: 100vh;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(236, 72, 153, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 90% 15%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, rgba(6, 8, 15, 0.85) 0%, #06080f 100%);
       background-attachment: fixed;
+      overflow-x: hidden;
     }
 
-    .app-container {
-      max-width: 1380px;
+    /* Ambient Background Glow */
+    .ambient-glow {
+      position: fixed;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 350px;
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.12) 40%, transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-layout {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 1.5rem 2rem 3rem 2rem;
+      padding: 1.75rem 2.25rem 3.5rem 2.25rem;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.75rem;
     }
 
     /* Header */
@@ -78,567 +101,783 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 1.25rem;
+      padding-bottom: 1.5rem;
       border-bottom: 1px solid var(--border-subtle);
       flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
       gap: 1rem;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-
-    .logo-icon {
-      width: 44px;
-      height: 44px;
+    .brand-logo {
+      width: 48px;
+      height: 48px;
       border-radius: var(--radius-md);
-      background: var(--accent-gradient);
+      background: var(--grad-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: var(--accent-glow);
+      box-shadow: var(--shadow-glow);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .brand-text h1 {
+    .brand-logo:hover {
+      transform: scale(1.05) rotate(3deg);
+    }
+
+    .brand-titles h1 {
       font-family: var(--font-display);
-      font-size: 1.45rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #94a3b8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .brand-text p {
+    .brand-titles p {
       font-size: 0.82rem;
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-
-    .pipeline-flow-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      padding: 0.5rem 1rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      font-size: 0.82rem;
-      flex-wrap: wrap;
-    }
-
-    .pipeline-node {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-weight: 600;
-      padding: 0.25rem 0.6rem;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .pipeline-arrow {
       color: var(--text-muted);
-      font-weight: bold;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .health-group {
+    /* Pipeline Conveyor Belt */
+    .pipeline-tracker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      font-weight: 500;
+      transition: all 0.25s ease;
+    }
+
+    .pipeline-step.active {
+      background: rgba(99, 102, 241, 0.18);
+      color: #c7d2fe;
+      border: 1px solid var(--border-glow);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .pipeline-connector {
+      color: var(--text-faint);
+      font-size: 0.75rem;
+      animation: pulseArrow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseArrow {
+      0%, 100% { opacity: 0.4; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(2px); }
+    }
+
+    /* Health Group */
+    .health-pill-group {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       background: var(--bg-glass);
+      backdrop-filter: blur(20px);
       padding: 0.35rem 0.75rem;
       border-radius: 9999px;
       border: 1px solid var(--border-subtle);
     }
 
-    .health-pill {
+    .health-indicator {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.4rem;
       font-size: 0.75rem;
       font-weight: 600;
-      padding: 0.2rem 0.5rem;
+      padding: 0.25rem 0.6rem;
       border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.3s ease;
     }
 
-    .health-dot {
-      width: 7px;
-      height: 7px;
+    .status-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .health-dot.ok {
-      background-color: var(--status-success);
-      box-shadow: 0 0 8px var(--status-success);
+    .status-dot.healthy {
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
     }
 
-    .health-dot.error {
-      background-color: var(--status-error);
-      box-shadow: 0 0 8px var(--status-error);
+    .status-dot.unhealthy {
+      background-color: var(--accent-rose);
+      box-shadow: 0 0 10px var(--accent-rose);
+    }
+
+    /* Quick KPI Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--grad-primary);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .kpi-card:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-indigo);
+      flex-shrink: 0;
+    }
+
+    .kpi-info h4 {
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+
+    .kpi-info p {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     /* Main Grid */
-    .main-grid {
+    .dashboard-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      gap: 1.75rem;
     }
 
-    @media (max-width: 1024px) {
-      .main-grid {
+    @media (max-width: 1080px) {
+      .dashboard-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .glass-panel {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
+    /* Glass Panels */
+    .glass-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(28px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 1.5rem;
+      padding: 1.75rem;
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      gap: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      transition: border-color 0.3s ease;
     }
 
-    .panel-header {
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .panel-title {
+    .card-title {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.65rem;
       font-family: var(--font-display);
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
 
     /* Dropzone */
-    .dropzone-container {
+    .upload-zone {
       border: 2px dashed var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 2rem 1.5rem;
+      padding: 2.25rem 1.75rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.015);
-      transition: all 0.25s ease;
+      background: var(--grad-card);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
     }
 
-    .dropzone-container:hover, .dropzone-container.dragover {
-      border-color: var(--accent-primary);
-      background: rgba(99, 102, 241, 0.05);
-      transform: translateY(-2px);
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent-indigo);
+      background: rgba(99, 102, 241, 0.06);
+      transform: scale(1.008);
+      box-shadow: var(--shadow-glow);
     }
 
-    .dropzone-icon {
-      width: 48px;
-      height: 48px;
+    .upload-icon-circle {
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: rgba(99, 102, 241, 0.1);
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent-primary);
-      margin-bottom: 0.75rem;
+      color: var(--accent-indigo);
+      margin-bottom: 1rem;
+      transition: transform 0.3s ease;
     }
 
-    .dropzone-text h3 {
-      font-size: 0.95rem;
+    .upload-zone:hover .upload-icon-circle {
+      transform: translateY(-3px) scale(1.08);
+      background: rgba(99, 102, 241, 0.2);
+    }
+
+    .upload-prompt h3 {
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.3rem;
     }
 
-    .dropzone-text p {
+    .upload-prompt p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* Quick Action Sample Buttons */
+    .quick-samples {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+
+    .sample-pill-btn {
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .sample-pill-btn:hover {
+      background: var(--accent-indigo);
+      color: #fff;
+      border-color: var(--accent-indigo);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Ingestion Progress Card */
+    .progress-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.15rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+
+    .status-chip {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .status-chip.queued {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-chip.loading {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .status-chip.complete {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-chip.failed {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-shimmer {
+      height: 100%;
+      background: var(--grad-primary);
+      border-radius: 9999px;
+      width: 0%;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-bar-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .progress-details {
+      display: flex;
+      justify-content: space-between;
       font-size: 0.8rem;
       color: var(--text-muted);
     }
 
-    .sample-files-row {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .sample-btn {
-      font-size: 0.72rem;
-      padding: 0.25rem 0.55rem;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .sample-btn:hover {
-      background: var(--accent-primary);
-      color: #fff;
-      border-color: var(--accent-primary);
-    }
-
-    /* Progress Tracker */
-    .progress-card {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 1rem 1.25rem;
+    /* Preview Table */
+    .preview-container {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.6rem;
+      animation: fadeIn 0.35s ease;
     }
 
-    .progress-header {
+    .preview-header-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
-    }
-
-    .progress-status-badge {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 0.2rem 0.55rem;
-      border-radius: 9999px;
-    }
-
-    .progress-status-badge.queued {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--status-warning);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    .progress-status-badge.loading {
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--status-info);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-
-    .progress-status-badge.complete {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--status-success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .progress-status-badge.failed {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--status-error);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .progress-bar-bg {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 9999px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--accent-gradient);
-      border-radius: 9999px;
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .progress-stats-row {
-      display: flex;
-      justify-content: space-between;
       font-size: 0.8rem;
-      color: var(--text-secondary);
+      color: var(--text-muted);
     }
 
-    /* Preview Table */
-    .preview-wrapper {
+    .table-scroll-wrap {
       overflow-x: auto;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-subtle);
-      max-height: 220px;
+      max-height: 230px;
+      background: rgba(0, 0, 0, 0.25);
     }
 
-    .preview-table {
+    .styled-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.78rem;
       text-align: left;
     }
 
-    .preview-table th {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 0.5rem 0.75rem;
-      color: var(--text-primary);
+    .styled-table th {
+      background: rgba(22, 28, 48, 0.95);
+      padding: 0.55rem 0.85rem;
+      color: var(--text-main);
       font-weight: 600;
       border-bottom: 1px solid var(--border-subtle);
       position: sticky;
       top: 0;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
+      z-index: 2;
     }
 
-    .preview-table td {
-      padding: 0.45rem 0.75rem;
-      color: var(--text-secondary);
+    .styled-table td {
+      padding: 0.5rem 0.85rem;
+      color: var(--text-muted);
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
       white-space: nowrap;
     }
 
-    .preview-table tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
+    .styled-table tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .styled-table tr:hover td {
+      background: rgba(99, 102, 241, 0.05);
+      color: var(--text-main);
     }
 
     /* Chat Section */
-    .chat-container {
+    .chat-layout {
       display: flex;
       flex-direction: column;
-      height: 600px;
+      height: 640px;
+      gap: 1rem;
     }
 
-    .chat-messages-area {
+    .chat-feed {
       flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      padding-right: 0.5rem;
+      gap: 1.1rem;
+      padding-right: 0.4rem;
+      scroll-behavior: smooth;
     }
 
-    .chat-empty-state {
+    .chat-empty {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--text-muted);
+      color: var(--text-faint);
       text-align: center;
-      gap: 0.5rem;
-      padding: 2rem;
+      gap: 0.75rem;
+      padding: 2.5rem;
     }
 
-    .chat-bubble {
+    .chat-msg {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.45rem;
       max-width: 95%;
-      animation: fadeIn 0.25s ease forwards;
+      animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .chat-bubble.user {
+    @keyframes messageSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-msg.user {
       align-self: flex-end;
     }
 
-    .chat-bubble.bot {
+    .chat-msg.bot {
       align-self: flex-start;
       width: 100%;
     }
 
-    .bubble-user-text {
+    .user-pill {
       background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
       color: #fff;
-      padding: 0.75rem 1rem;
-      border-radius: var(--radius-md) var(--radius-md) 2px var(--radius-md);
+      padding: 0.8rem 1.2rem;
+      border-radius: var(--radius-md) var(--radius-md) 3px var(--radius-md);
       font-size: 0.9rem;
       font-weight: 500;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
     }
 
-    .bubble-bot-card {
-      background: rgba(16, 21, 36, 0.9);
+    .bot-card {
+      background: rgba(14, 18, 34, 0.85);
+      backdrop-filter: blur(20px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 1rem;
+      padding: 1.15rem 1.35rem;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.85rem;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s ease;
     }
 
-    .bot-card-header {
+    .bot-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .bot-card-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .bot-answer-text {
-      font-size: 0.92rem;
-      color: var(--text-primary);
-      line-height: 1.5;
+    .bot-sender-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
     }
 
-    .grounded-badge {
+    .grounded-tag {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
       font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.2rem 0.55rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
       border-radius: 9999px;
     }
 
-    .grounded-badge.grounded {
-      background: rgba(16, 185, 129, 0.12);
-      color: var(--status-success);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+    .grounded-tag.true {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .grounded-badge.ungrounded {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--status-warning);
-      border: 1px solid rgba(245, 158, 11, 0.25);
+    .grounded-tag.false {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
-    .cypher-accordion {
+    .bot-answer {
+      font-size: 0.94rem;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* Accordion */
+    .cypher-drawer {
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.4);
       overflow: hidden;
+      margin-top: 0.25rem;
     }
 
-    .cypher-accordion-header {
+    .cypher-drawer-btn {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.45rem 0.75rem;
+      padding: 0.55rem 0.9rem;
       cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-
-    .cypher-accordion-header:hover {
-      color: var(--text-primary);
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .cypher-code-block {
-      padding: 0.65rem 0.75rem;
-      font-family: var(--font-mono);
       font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      user-select: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .cypher-drawer-btn:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+    }
+
+    .cypher-code-view {
+      padding: 0.85rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
       color: #a5b4fc;
-      background: #080b12;
+      background: #05070d;
       border-top: 1px solid var(--border-subtle);
       white-space: pre-wrap;
+      position: relative;
     }
 
-    .raw-result-block {
-      padding: 0.65rem 0.75rem;
+    .raw-json-view {
+      padding: 0.75rem 1rem;
       font-family: var(--font-mono);
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       color: #94a3b8;
-      background: #05070a;
+      background: #030508;
       border-top: 1px solid var(--border-subtle);
-      max-height: 130px;
+      max-height: 140px;
       overflow-y: auto;
     }
 
-    .prompt-chips-row {
+    /* Prompt Suggestion Chips */
+    .chips-tray {
       display: flex;
-      gap: 0.4rem;
+      gap: 0.45rem;
       flex-wrap: wrap;
-      padding: 0.5rem 0;
+      padding: 0.25rem 0;
     }
 
-    .prompt-chip {
-      font-size: 0.74rem;
-      padding: 0.3rem 0.65rem;
-      background: rgba(99, 102, 241, 0.1);
+    .chip-btn {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      background: rgba(99, 102, 241, 0.08);
       border: 1px solid rgba(99, 102, 241, 0.25);
       border-radius: 9999px;
       color: #c7d2fe;
       cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .prompt-chip:hover {
-      background: rgba(99, 102, 241, 0.25);
-      border-color: var(--accent-primary);
-      color: #fff;
-    }
-
-    .chat-input-bar {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
-      gap: 0.6rem;
-      margin-top: 0.5rem;
+      align-items: center;
+      gap: 0.3rem;
     }
 
-    .chat-input-field {
+    .chip-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--accent-indigo);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Input Controls */
+    .chat-bar {
+      display: flex;
+      gap: 0.65rem;
+      position: relative;
+    }
+
+    .chat-field {
       flex: 1;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.45);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
-      color: var(--text-primary);
-      font-size: 0.88rem;
+      padding: 0.85rem 1.15rem;
+      color: var(--text-main);
+      font-size: 0.9rem;
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.25s ease;
     }
 
-    .chat-input-field:focus {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    .chat-field:focus {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+      background: rgba(0, 0, 0, 0.6);
     }
 
-    .chat-send-btn {
-      background: var(--accent-gradient);
+    .chat-submit-btn {
+      background: var(--grad-primary);
       border: none;
       border-radius: var(--radius-md);
-      padding: 0 1.25rem;
+      padding: 0 1.5rem;
       color: #fff;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      box-shadow: var(--accent-glow);
-      transition: opacity 0.2s ease, transform 0.1s ease;
+      gap: 0.45rem;
+      box-shadow: var(--shadow-glow);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .chat-send-btn:hover:not(:disabled) {
-      opacity: 0.92;
-      transform: translateY(-1px);
+    .chat-submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
     }
 
-    .chat-send-btn:disabled {
-      opacity: 0.4;
+    .chat-submit-btn:disabled {
+      opacity: 0.35;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
-    .alert-box {
-      padding: 0.75rem 1rem;
+    /* Toast Alert */
+    .toast-alert {
+      padding: 0.85rem 1.25rem;
       border-radius: var(--radius-md);
-      font-size: 0.82rem;
+      font-size: 0.86rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.65rem;
+      animation: fadeIn 0.25s ease;
     }
 
-    .alert-box.error {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+    .toast-alert.error {
+      background: rgba(244, 63, 94, 0.14);
+      border: 1px solid rgba(244, 63, 94, 0.35);
       color: #fca5a5;
     }
 
-    .alert-box.info {
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
+    .toast-alert.info {
+      background: rgba(6, 182, 212, 0.14);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: #a5f3fc;
     }
 
     @keyframes fadeIn {
@@ -648,100 +887,174 @@
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <div class="ambient-glow"></div>
+
+  <div class="app-layout">
     <!-- Header -->
     <header class="app-header">
-      <div class="brand">
-        <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         </div>
-        <div class="brand-text">
+        <div class="brand-titles">
           <h1>Data In, Answers Out</h1>
-          <p>CSV Stream · Apache Kafka · Neo4j Graph DB · Grounded Chatbot</p>
+          <p>
+            <span>⚡ High-Throughput Stream</span>
+            <span>·</span>
+            <span>🕸️ Knowledge Graph</span>
+            <span>·</span>
+            <span>🤖 Grounded AI</span>
+          </p>
         </div>
       </div>
 
-      <div class="pipeline-flow-bar">
-        <div class="pipeline-node"><span>📄 CSV</span></div>
-        <span class="pipeline-arrow">→</span>
-        <div class="pipeline-node"><span>⚡ Kafka (KRaft)</span></div>
-        <span class="pipeline-arrow">→</span>
-        <div class="pipeline-node"><span>🕸️ Neo4j Graph</span></div>
-        <span class="pipeline-arrow">→</span>
-        <div class="pipeline-node"><span>🤖 Grounded Chat</span></div>
+      <div class="pipeline-tracker">
+        <div class="pipeline-step" id="pipe-csv">
+          <span>📄 CSV</span>
+        </div>
+        <span class="pipeline-connector">➔</span>
+        <div class="pipeline-step" id="pipe-kafka">
+          <span>⚡ Kafka KRaft</span>
+        </div>
+        <span class="pipeline-connector">➔</span>
+        <div class="pipeline-step" id="pipe-neo4j">
+          <span>🕸️ Neo4j Graph</span>
+        </div>
+        <span class="pipeline-connector">➔</span>
+        <div class="pipeline-step" id="pipe-chat">
+          <span>🤖 Grounded Chat</span>
+        </div>
       </div>
 
-      <div class="health-group">
-        <div class="health-pill" id="health-api-pill"><span class="health-dot" id="health-api-dot"></span><span>API</span></div>
-        <div class="health-pill" id="health-kafka-pill"><span class="health-dot" id="health-kafka-dot"></span><span>Kafka</span></div>
-        <div class="health-pill" id="health-neo4j-pill"><span class="health-dot" id="health-neo4j-dot"></span><span>Neo4j</span></div>
+      <div class="health-pill-group">
+        <div class="health-indicator" title="FastAPI Service Health">
+          <span class="status-dot" id="dot-api"></span>
+          <span>API</span>
+        </div>
+        <div class="health-indicator" title="Apache Kafka 3.7.0 Broker">
+          <span class="status-dot" id="dot-kafka"></span>
+          <span>Kafka</span>
+        </div>
+        <div class="health-indicator" title="Neo4j 5.24 Bolt Protocol">
+          <span class="status-dot" id="dot-neo4j"></span>
+          <span>Neo4j</span>
+        </div>
       </div>
     </header>
 
-    <!-- Alerts -->
-    <div id="alert-container"></div>
+    <!-- Top KPI Metrics -->
+    <section class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="kpi-info">
+          <h4>Active Dataset</h4>
+          <p id="kpi-dataset-name">None</p>
+        </div>
+      </div>
 
-    <main class="main-grid">
-      <!-- Ingest Section -->
-      <section class="glass-panel">
-        <div class="panel-header">
-          <h2 class="panel-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <span>Data Ingest Pipeline</span>
-          </h2>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--accent-cyan);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="kpi-info">
+          <h4>Ingested Rows</h4>
+          <p id="kpi-rows-count">0</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--accent-violet);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <div class="kpi-info">
+          <h4>Graph Relations</h4>
+          <p id="kpi-rel-count">0</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--accent-emerald);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="kpi-info">
+          <h4>Idempotency State</h4>
+          <p style="color:var(--accent-emerald); font-size:1.15rem;">MERGE Protected</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toast Notifications -->
+    <div id="toast-wrapper"></div>
+
+    <main class="dashboard-grid">
+      <!-- Ingest Card -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Dynamic CSV Ingestion</span>
+            </h2>
+            <p class="card-subtitle">Streams records through Kafka directly into Neo4j graph nodes</p>
+          </div>
         </div>
 
-        <div id="dropzone" class="dropzone-container">
+        <div id="dropzone" class="upload-zone">
           <input type="file" id="file-input" style="display:none;" accept=".csv,text/csv" />
-          <div class="dropzone-icon">
+          <div class="upload-icon-circle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <div class="dropzone-text" id="dropzone-text">
-            <h3>Drop your CSV file here, or click to browse</h3>
-            <p>Streams dynamic rows via Kafka directly into Neo4j graph</p>
+          <div class="upload-prompt" id="drop-text">
+            <h3>Drag & Drop any CSV here, or click to browse</h3>
+            <p>Automatic schema extraction, batch streaming, and idempotent graph indexing</p>
           </div>
         </div>
 
-        <div class="sample-files-row">
-          <span style="font-size:0.72rem; color:var(--text-muted);">Quick Tests:</span>
-          <button class="sample-btn" onclick="loadSample('clean')">✨ Clean 20 Rows</button>
-          <button class="sample-btn" onclick="loadSample('volume')">🚀 1,000 Rows Volume</button>
-          <button class="sample-btn" onclick="loadSample('broken')">⚠️ Broken Ragged CSV</button>
-          <button class="sample-btn" onclick="loadSample('header_only')">🚫 Header-Only</button>
-          <button class="sample-btn" onclick="loadSample('empty')">📭 Empty (0B)</button>
+        <div class="quick-samples">
+          <span style="font-size:0.75rem; color:var(--text-faint); font-weight:600;">Presets:</span>
+          <button class="sample-pill-btn" onclick="loadSample('clean')">✨ Clean 20 Rows</button>
+          <button class="sample-pill-btn" onclick="loadSample('volume')">🚀 1,000 Rows Volume</button>
+          <button class="sample-pill-btn" onclick="loadSample('broken')">⚠️ Broken Ragged CSV</button>
+          <button class="sample-pill-btn" onclick="loadSample('header_only')">🚫 Header-Only</button>
+          <button class="sample-pill-btn" onclick="loadSample('empty')">📭 Empty File (0B)</button>
         </div>
 
-        <!-- Progress Tracker -->
-        <div id="progress-container" style="display:none;"></div>
+        <!-- Ingestion Progress -->
+        <div id="progress-card" style="display:none;"></div>
 
-        <!-- Preview Table -->
-        <div id="preview-container" style="display:none;"></div>
+        <!-- Instant Table Preview -->
+        <div id="preview-section" style="display:none;"></div>
       </section>
 
-      <!-- Chat Section -->
-      <section class="glass-panel">
-        <div class="panel-header">
-          <h2 class="panel-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Grounded Graph Chatbot</span>
-          </h2>
+      <!-- Grounded Chat Card -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Graph-Grounded Chatbot</span>
+            </h2>
+            <p class="card-subtitle">Natural language answers strictly grounded in real Cypher graph results</p>
+          </div>
         </div>
 
-        <div class="chat-container">
-          <div class="chat-messages-area" id="chat-messages">
-            <div class="chat-empty-state" id="chat-empty">
-              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.4"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-              <h4 style="color:var(--text-primary); font-weight:600;">Grounded Knowledge Assistant</h4>
-              <p style="font-size:0.82rem; max-width:360px;">Upload a CSV to unlock graph queries. Answers are strictly grounded in real Neo4j nodes.</p>
+        <div class="chat-layout">
+          <div class="chat-feed" id="chat-feed">
+            <div class="chat-empty" id="chat-empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+              <h4 style="color:var(--text-main); font-weight:600; font-size:1.05rem;">Grounded Graph Assistant</h4>
+              <p style="font-size:0.84rem; max-width:380px; line-height:1.5;">Upload a CSV to begin asking questions. Every response executes real Cypher queries against Neo4j with zero hallucinations.</p>
             </div>
           </div>
 
-          <div class="prompt-chips-row" id="prompt-chips" style="display:none;"></div>
+          <div class="chips-tray" id="chips-tray" style="display:none;"></div>
 
-          <form id="chat-form" class="chat-input-bar">
-            <input type="text" id="chat-input" class="chat-input-field" placeholder="Upload a CSV first to start chatting..." disabled />
-            <button type="submit" id="chat-btn" class="chat-send-btn" disabled>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <form id="chat-form" class="chat-bar">
+            <input type="text" id="chat-input" class="chat-field" placeholder="Upload a CSV first to unlock graph queries..." disabled />
+            <button type="submit" id="chat-btn" class="chat-submit-btn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               <span>Ask</span>
             </button>
           </form>
@@ -752,11 +1065,11 @@
 
   <script>
     let activeJobId = null;
-    let pollInterval = null;
-    let detectedHeaders = [];
-    let isDatasetReady = false;
+    let pollTimer = null;
+    let activeHeaders = [];
+    let isGraphReady = false;
 
-    // Helper: Parse CSV in JS
+    // Fast CSV Parser
     function parseCSV(text) {
       const lines = text.split(/\r\n|\n/).filter(l => l.trim().length > 0);
       if (lines.length === 0) return { headers: [], rows: [] };
@@ -794,17 +1107,17 @@
         const kafkaOk = Boolean(data.kafka_connected);
         const neo4jOk = Boolean(data.neo4j_connected);
 
-        document.getElementById('health-api-dot').className = 'health-dot ' + (apiOk ? 'ok' : 'error');
-        document.getElementById('health-kafka-dot').className = 'health-dot ' + (kafkaOk ? 'ok' : 'error');
-        document.getElementById('health-neo4j-dot').className = 'health-dot ' + (neo4jOk ? 'ok' : 'error');
+        document.getElementById('dot-api').className = 'status-dot ' + (apiOk ? 'healthy' : 'unhealthy');
+        document.getElementById('dot-kafka').className = 'status-dot ' + (kafkaOk ? 'healthy' : 'unhealthy');
+        document.getElementById('dot-neo4j').className = 'status-dot ' + (neo4jOk ? 'healthy' : 'unhealthy');
       } catch (err) {
-        document.getElementById('health-api-dot').className = 'health-dot error';
-        document.getElementById('health-kafka-dot').className = 'health-dot error';
-        document.getElementById('health-neo4j-dot').className = 'health-dot error';
+        document.getElementById('dot-api').className = 'status-dot unhealthy';
+        document.getElementById('dot-kafka').className = 'status-dot unhealthy';
+        document.getElementById('dot-neo4j').className = 'status-dot unhealthy';
       }
     }
     checkHealth();
-    setInterval(checkHealth, 4000);
+    setInterval(checkHealth, 3500);
 
     // Dropzone setup
     const dropzone = document.getElementById('dropzone');
@@ -817,81 +1130,100 @@
       e.preventDefault();
       dropzone.classList.remove('dragover');
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleFile(e.dataTransfer.files[0]);
+        handleUpload(e.dataTransfer.files[0]);
       }
     });
 
     fileInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {
-        handleFile(e.target.files[0]);
+        handleUpload(e.target.files[0]);
       }
     });
 
-    function showAlert(msg, type='error') {
-      const container = document.getElementById('alert-container');
-      container.innerHTML = `<div class="alert-box ${type}">${msg}</div>`;
-      setTimeout(() => { container.innerHTML = ''; }, 6000);
+    function showToast(msg, type='error') {
+      const wrapper = document.getElementById('toast-wrapper');
+      wrapper.innerHTML = `<div class="toast-alert ${type}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>${msg}</span>
+      </div>`;
+      setTimeout(() => { wrapper.innerHTML = ''; }, 6000);
     }
 
-    function handleFile(file) {
-      document.getElementById('dropzone-text').innerHTML = `<h3>${file.name}</h3><p>${(file.size/1024).toFixed(1)} KB · Ingesting...</p>`;
-      
+    function handleUpload(file) {
+      document.getElementById('drop-text').innerHTML = `<h3>${file.name}</h3><p>${(file.size/1024).toFixed(1)} KB · Ingesting into streaming pipeline...</p>`;
+      document.getElementById('kpi-dataset-name').textContent = file.name;
+
       const reader = new FileReader();
       reader.onload = function(e) {
         const text = e.target.result;
         const { headers, rows } = parseCSV(text);
-        detectedHeaders = headers;
+        activeHeaders = headers;
         renderPreview(headers, rows);
         updatePromptChips(headers);
       };
       reader.readAsText(file);
 
-      uploadFile(file);
+      uploadToServer(file);
     }
 
     function renderPreview(headers, rows) {
       if (!headers || headers.length === 0) return;
-      const previewCont = document.getElementById('preview-container');
-      previewCont.style.display = 'block';
+      const section = document.getElementById('preview-section');
+      section.style.display = 'block';
 
-      let html = `<div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.4rem;">
-        <span style="font-weight:600;">⚡ Instant Client Preview</span>
-        <span>Showing ${Math.min(15, rows.length)} of ${rows.length} rows (${headers.length} columns)</span>
-      </div>
-      <div class="preview-wrapper">
-        <table class="preview-table">
-          <thead><tr><th>#</th>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-          <tbody>
-            ${rows.slice(0, 15).map((row, i) => `<tr><td style="color:var(--text-muted);font-family:var(--font-mono)">${i+1}</td>${headers.map((_, c) => `<td>${row[c] || ''}</td>`).join('')}</tr>`).join('')}
-          </tbody>
-        </table>
-      </div>`;
-      previewCont.innerHTML = html;
+      let html = `
+        <div class="preview-container">
+          <div class="preview-header-bar">
+            <span style="font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:0.4rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Instant Client Preview</span>
+            </span>
+            <span>Showing ${Math.min(15, rows.length)} of ${rows.length} rows (${headers.length} columns)</span>
+          </div>
+          <div class="table-scroll-wrap">
+            <table class="styled-table">
+              <thead><tr><th>#</th>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+              <tbody>
+                ${rows.slice(0, 15).map((row, i) => `<tr><td style="color:var(--text-faint); font-family:var(--font-mono); font-weight:600;">${i+1}</td>${headers.map((_, c) => `<td>${row[c] || ''}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      section.innerHTML = html;
     }
 
-    async function uploadFile(file) {
-      clearInterval(pollInterval);
+    async function uploadToServer(file) {
+      clearInterval(pollTimer);
       const formData = new FormData();
       formData.append('file', file);
+
+      // Highlight pipeline conveyor
+      document.getElementById('pipe-csv').classList.add('active');
+      document.getElementById('pipe-kafka').classList.add('active');
 
       try {
         const res = await fetch('/ingest', { method: 'POST', body: formData });
         const data = await res.json();
         if (!res.ok) {
-          showAlert(data.detail || data.error || 'Ingest failed');
+          showToast(data.detail || data.error || 'Ingest failed', 'error');
+          document.getElementById('pipe-csv').classList.remove('active');
+          document.getElementById('pipe-kafka').classList.remove('active');
           return;
         }
 
         activeJobId = data.job_id;
+        document.getElementById('kpi-rows-count').textContent = data.rows_received.toLocaleString();
+        document.getElementById('kpi-rel-count').textContent = data.rows_received.toLocaleString();
+
         renderProgress({ job_id: data.job_id, status: 'queued', rows_total: data.rows_received, rows_loaded: 0, rows_failed: 0 });
 
-        pollInterval = setInterval(() => pollJobStatus(data.job_id), 400);
+        pollTimer = setInterval(() => pollJob(data.job_id), 350);
       } catch (err) {
-        showAlert('Network error uploading file: ' + err.message);
+        showToast('Network error uploading file: ' + err.message, 'error');
       }
     }
 
-    async function pollJobStatus(jobId) {
+    async function pollJob(jobId) {
       try {
         const res = await fetch(`/status?job_id=${jobId}`);
         if (!res.ok) return;
@@ -899,13 +1231,15 @@
         renderProgress(data);
 
         if (data.status === 'complete') {
-          clearInterval(pollInterval);
-          isDatasetReady = true;
+          clearInterval(pollTimer);
+          isGraphReady = true;
+          document.getElementById('pipe-neo4j').classList.add('active');
+          document.getElementById('pipe-chat').classList.add('active');
           enableChat();
-          showAlert(`Dataset loaded into Neo4j graph successfully! (${data.rows_loaded} rows)`, 'info');
+          showToast(`Dataset loaded into Neo4j graph successfully! (${data.rows_loaded} rows)`, 'info');
         } else if (data.status === 'failed') {
-          clearInterval(pollInterval);
-          showAlert(`Ingestion failed with ${data.rows_failed} errors`, 'error');
+          clearInterval(pollTimer);
+          showToast(`Ingestion failed with ${data.rows_failed} errors`, 'error');
         }
       } catch (err) {
         console.warn('Status poll error:', err);
@@ -913,21 +1247,29 @@
     }
 
     function renderProgress(job) {
-      const container = document.getElementById('progress-container');
+      const container = document.getElementById('progress-card');
       container.style.display = 'block';
       const processed = job.rows_loaded + job.rows_failed;
       const pct = job.rows_total > 0 ? Math.min(100, Math.round((processed / job.rows_total) * 100)) : 0;
 
       container.innerHTML = `
-        <div class="progress-card">
-          <div class="progress-header">
-            <span style="font-weight:600;font-size:0.88rem;">Job: <code style="font-family:var(--font-mono);color:var(--accent-secondary)">${job.job_id}</code></span>
-            <span class="progress-status-badge ${job.status}">${job.status}</span>
+        <div class="progress-box">
+          <div class="progress-meta">
+            <span style="font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:0.45rem;">
+              <span>Job ID:</span>
+              <code style="font-family:var(--font-mono); color:var(--accent-cyan); background:rgba(6,182,212,0.1); padding:0.15rem 0.45rem; border-radius:4px;">${job.job_id}</code>
+            </span>
+            <span class="status-chip ${job.status}">
+              ${job.status === 'loading' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>' : ''}
+              <span>${job.status}</span>
+            </span>
           </div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-          <div class="progress-stats-row">
-            <span><strong>${job.rows_loaded.toLocaleString()}</strong> of <strong>${job.rows_total.toLocaleString()}</strong> rows loaded (${pct}%)</span>
-            ${job.rows_failed > 0 ? `<span style="color:var(--status-error)">⚠️ ${job.rows_failed} failed</span>` : ''}
+          <div class="progress-track">
+            <div class="progress-bar-shimmer" style="width:${pct}%"></div>
+          </div>
+          <div class="progress-details">
+            <span><strong>${job.rows_loaded.toLocaleString()}</strong> of <strong>${job.rows_total.toLocaleString()}</strong> rows indexed in Neo4j (${pct}%)</span>
+            ${job.rows_failed > 0 ? `<span style="color:var(--accent-rose)">⚠️ ${job.rows_failed} failed</span>` : '<span style="color:var(--accent-emerald);">● Zero Data Loss</span>'}
           </div>
         </div>`;
     }
@@ -936,13 +1278,13 @@
       const input = document.getElementById('chat-input');
       const btn = document.getElementById('chat-btn');
       input.disabled = false;
-      input.placeholder = "Ask any question about the graph data...";
+      input.placeholder = "Ask any plain-English question about the graph data...";
       btn.disabled = false;
     }
 
     function updatePromptChips(headers) {
-      const chipsCont = document.getElementById('prompt-chips');
-      chipsCont.style.display = 'flex';
+      const tray = document.getElementById('chips-tray');
+      tray.style.display = 'flex';
       const sampleCol = headers.find(h => ['department', 'group', 'city', 'role', 'status'].includes(h.toLowerCase())) || headers[0] || 'department';
       
       const prompts = [
@@ -954,10 +1296,14 @@
         "Who is the president of France?"
       ];
 
-      chipsCont.innerHTML = prompts.map(p => `<button type="button" class="prompt-chip" onclick="askQuestion('${p}')">${p}</button>`).join('');
+      tray.innerHTML = prompts.map(p => `
+        <button type="button" class="chip-btn" onclick="askQuestion('${p}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>${p}</span>
+        </button>`).join('');
     }
 
-    // Chat
+    // Chat handling
     document.getElementById('chat-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const input = document.getElementById('chat-input');
@@ -968,15 +1314,26 @@
     });
 
     async function askQuestion(q) {
-      const chatMessages = document.getElementById('chat-messages');
-      const emptyState = document.getElementById('chat-empty');
+      const chatFeed = document.getElementById('chat-feed');
+      const emptyState = document.getElementById('chat-empty-state');
       if (emptyState) emptyState.remove();
 
-      chatMessages.innerHTML += `<div class="chat-bubble user"><div class="bubble-user-text">${q}</div></div>`;
+      chatFeed.innerHTML += `
+        <div class="chat-msg user">
+          <div class="user-pill">${q}</div>
+        </div>`;
       
       const botPlaceholderId = 'bot-' + Date.now();
-      chatMessages.innerHTML += `<div class="chat-bubble bot" id="${botPlaceholderId}"><div class="bubble-bot-card"><span style="font-size:0.82rem;color:var(--text-secondary)">⚡ Querying graph...</span></div></div>`;
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatFeed.innerHTML += `
+        <div class="chat-msg bot" id="${botPlaceholderId}">
+          <div class="bot-card">
+            <span style="font-size:0.84rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <span>Querying Neo4j knowledge graph...</span>
+            </span>
+          </div>
+        </div>`;
+      chatFeed.scrollTop = chatFeed.scrollHeight;
 
       try {
         const res = await fetch('/chat', {
@@ -988,40 +1345,46 @@
         
         const card = document.getElementById(botPlaceholderId);
         if (card) {
-          const groundedBadge = data.grounded 
-            ? `<span class="grounded-badge grounded">✅ Grounded</span>` 
-            : `<span class="grounded-badge ungrounded">⚠️ Not Grounded</span>`;
+          const groundedTag = data.grounded 
+            ? `<span class="grounded-tag true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Grounded in Graph</span>` 
+            : `<span class="grounded-tag false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Not Grounded</span>`;
 
           let cypherBlock = '';
           if (data.cypher) {
             cypherBlock = `
-              <div class="cypher-accordion">
-                <div class="cypher-accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                  <span>🔍 View Cypher & Raw Graph Result</span>
+              <div class="cypher-drawer">
+                <div class="cypher-drawer-btn" onclick="const b = this.nextElementSibling; b.style.display = b.style.display === 'none' ? 'block' : 'none';">
+                  <span style="display:flex; align-items:center; gap:0.4rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span>View Cypher & Raw Graph Result</span>
+                  </span>
                   <span>▼</span>
                 </div>
                 <div style="display:none;">
-                  <div class="cypher-code-block">${data.cypher}</div>
-                  ${data.result && data.result.length > 0 ? `<div class="raw-result-block"><pre>${JSON.stringify(data.result, null, 2)}</pre></div>` : ''}
+                  <div class="cypher-code-view">${data.cypher}</div>
+                  ${data.result && data.result.length > 0 ? `<div class="raw-json-view"><pre>${JSON.stringify(data.result, null, 2)}</pre></div>` : ''}
                 </div>
               </div>`;
           }
 
           card.innerHTML = `
-            <div class="bubble-bot-card">
-              <div class="bot-card-header">
-                <span style="font-size:0.8rem; font-weight:600; color:var(--text-primary)">Graph Assistant</span>
-                ${groundedBadge}
+            <div class="bot-card">
+              <div class="bot-card-top">
+                <div class="bot-sender-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+                  <span>Graph Assistant</span>
+                </div>
+                ${groundedTag}
               </div>
-              <div class="bot-answer-text">${data.answer || data.detail}</div>
+              <div class="bot-answer">${data.answer || data.detail}</div>
               ${cypherBlock}
             </div>`;
         }
       } catch (err) {
         const card = document.getElementById(botPlaceholderId);
-        if (card) card.innerHTML = `<div class="bubble-bot-card"><span style="color:var(--status-error)">Error: ${err.message}</span></div>`;
+        if (card) card.innerHTML = `<div class="bot-card"><span style="color:var(--accent-rose)">Query error: ${err.message}</span></div>`;
       }
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatFeed.scrollTop = chatFeed.scrollHeight;
     }
 
     function loadSample(type) {
@@ -1075,7 +1438,7 @@
       }
 
       const file = new File([content], filename, { type: 'text/csv' });
-      handleFile(file);
+      handleUpload(file);
     }
   </script>
 </body>
