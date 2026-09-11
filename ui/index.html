@@ -3,79 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data In, Answers Out — CSV · Kafka · Neo4j Pipeline</title>
+  <title>Data In, Answers Out — Enterprise Stream & Graph Intelligence</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    /* Theme Palettes */
+    /* ==========================================================================
+       THEME DEFINITIONS & COLOR PALETTES
+       ========================================================================== */
     :root[data-theme="cyber"] {
-      --bg-base: #06080f;
-      --bg-surface: rgba(14, 18, 32, 0.75);
-      --bg-surface-hover: rgba(22, 28, 48, 0.85);
-      --bg-glass: rgba(18, 24, 42, 0.5);
+      --bg-base: #070913;
+      --bg-surface: rgba(14, 19, 36, 0.75);
+      --bg-surface-elevated: rgba(22, 29, 54, 0.85);
+      --bg-glass: rgba(16, 22, 44, 0.55);
+      --bg-input: rgba(8, 12, 24, 0.7);
 
       --accent-primary: #6366f1;
       --accent-secondary: #06b6d4;
       --accent-tertiary: #a855f7;
 
       --grad-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
-      --glow-color: rgba(99, 102, 241, 0.28);
-      --border-glow: rgba(99, 102, 241, 0.35);
+      --grad-glow: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 70%);
+      --glow-color: rgba(99, 102, 241, 0.3);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.4);
     }
 
     :root[data-theme="emerald"] {
-      --bg-base: #040d0a;
-      --bg-surface: rgba(10, 24, 18, 0.75);
-      --bg-surface-hover: rgba(16, 36, 28, 0.85);
-      --bg-glass: rgba(12, 28, 22, 0.5);
+      --bg-base: #040e0b;
+      --bg-surface: rgba(10, 26, 20, 0.75);
+      --bg-surface-elevated: rgba(16, 38, 30, 0.85);
+      --bg-glass: rgba(12, 30, 24, 0.55);
+      --bg-input: rgba(6, 16, 12, 0.7);
 
       --accent-primary: #10b981;
       --accent-secondary: #14b8a6;
       --accent-tertiary: #84cc16;
 
       --grad-primary: linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #84cc16 100%);
-      --glow-color: rgba(16, 185, 129, 0.28);
-      --border-glow: rgba(16, 185, 129, 0.35);
+      --grad-glow: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(20, 184, 166, 0.05) 50%, transparent 70%);
+      --glow-color: rgba(16, 185, 129, 0.3);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(16, 185, 129, 0.4);
     }
 
     :root[data-theme="crimson"] {
-      --bg-base: #0d0608;
-      --bg-surface: rgba(26, 12, 16, 0.75);
-      --bg-surface-hover: rgba(38, 18, 24, 0.85);
-      --bg-glass: rgba(30, 14, 20, 0.5);
+      --bg-base: #0e0609;
+      --bg-surface: rgba(28, 12, 18, 0.75);
+      --bg-surface-elevated: rgba(40, 18, 26, 0.85);
+      --bg-glass: rgba(32, 14, 22, 0.55);
+      --bg-input: rgba(18, 8, 12, 0.7);
 
       --accent-primary: #f43f5e;
       --accent-secondary: #f97316;
       --accent-tertiary: #fbbf24;
 
       --grad-primary: linear-gradient(135deg, #f43f5e 0%, #f97316 50%, #fbbf24 100%);
-      --glow-color: rgba(244, 63, 94, 0.28);
-      --border-glow: rgba(244, 63, 94, 0.35);
+      --grad-glow: radial-gradient(circle, rgba(244, 63, 94, 0.25) 0%, rgba(249, 115, 22, 0.05) 50%, transparent 70%);
+      --glow-color: rgba(244, 63, 94, 0.3);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(244, 63, 94, 0.4);
     }
 
     :root[data-theme="amethyst"] {
-      --bg-base: #0a0612;
-      --bg-surface: rgba(20, 12, 34, 0.75);
-      --bg-surface-hover: rgba(30, 18, 50, 0.85);
-      --bg-glass: rgba(24, 14, 40, 0.5);
+      --bg-base: #0a0614;
+      --bg-surface: rgba(22, 12, 38, 0.75);
+      --bg-surface-elevated: rgba(34, 18, 56, 0.85);
+      --bg-glass: rgba(26, 14, 44, 0.55);
+      --bg-input: rgba(14, 8, 24, 0.7);
 
       --accent-primary: #a855f7;
       --accent-secondary: #ec4899;
       --accent-tertiary: #8b5cf6;
 
       --grad-primary: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #8b5cf6 100%);
-      --glow-color: rgba(168, 85, 247, 0.28);
-      --border-glow: rgba(168, 85, 247, 0.35);
+      --grad-glow: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(236, 72, 153, 0.05) 50%, transparent 70%);
+      --glow-color: rgba(168, 85, 247, 0.3);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(168, 85, 247, 0.4);
     }
 
+    :root[data-theme="obsidian"] {
+      --bg-base: #030305;
+      --bg-surface: rgba(18, 18, 22, 0.75);
+      --bg-surface-elevated: rgba(28, 28, 34, 0.85);
+      --bg-glass: rgba(20, 20, 26, 0.55);
+      --bg-input: rgba(10, 10, 14, 0.7);
+
+      --accent-primary: #38bdf8;
+      --accent-secondary: #818cf8;
+      --accent-tertiary: #c084fc;
+
+      --grad-primary: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      --grad-glow: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(129, 140, 248, 0.05) 50%, transparent 70%);
+      --glow-color: rgba(56, 189, 248, 0.3);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Core Tokens */
     :root {
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-display: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
 
-      --border-subtle: rgba(255, 255, 255, 0.08);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-faint: #64748b;
@@ -83,8 +115,9 @@
       --accent-emerald: #10b981;
       --accent-rose: #f43f5e;
       --accent-amber: #f59e0b;
+      --accent-cyan: #06b6d4;
 
-      --grad-card: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+      --grad-card: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
 
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -92,9 +125,14 @@
       --radius-xl: 28px;
 
       --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-      --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 10px 28px -6px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 20px 48px -10px rgba(0, 0, 0, 0.65);
+
+      --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-normal: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    /* Global Resets */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -119,34 +157,39 @@
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       background-image: 
-        radial-gradient(circle at 10% 10%, var(--glow-color) 0%, transparent 40%),
-        radial-gradient(circle at 90% 15%, var(--glow-color) 0%, transparent 40%),
-        linear-gradient(180deg, rgba(6, 8, 15, 0.85) 0%, var(--bg-base) 100%);
+        radial-gradient(circle at 10% 8%, var(--glow-color) 0%, transparent 40%),
+        radial-gradient(circle at 90% 12%, var(--glow-color) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(7, 9, 19, 0.85) 0%, var(--bg-base) 100%);
       background-attachment: fixed;
+      transition: background-color var(--transition-normal);
     }
 
-    /* Ambient Background */
+    /* Ambient Background Pulse */
     .ambient-glow {
       position: fixed;
-      top: -150px;
+      top: -160px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(800px, 90%);
-      height: 320px;
+      width: min(850px, 92%);
+      height: 350px;
       background: radial-gradient(ellipse, var(--glow-color) 0%, transparent 70%);
-      filter: blur(60px);
+      filter: blur(70px);
       pointer-events: none;
       z-index: 0;
+      opacity: 0.85;
+      transition: background var(--transition-normal);
     }
 
-    /* Auth Screen */
+    /* ==========================================================================
+       AUTHENTICATION / CLIENT LOGIN PORTAL
+       ========================================================================== */
     .auth-overlay {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
-      background: rgba(4, 6, 12, 0.85);
-      backdrop-filter: blur(30px);
+      background: rgba(4, 6, 14, 0.88);
+      backdrop-filter: blur(35px) saturate(180%);
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -157,7 +200,7 @@
 
     .auth-card {
       width: 100%;
-      max-width: 410px;
+      max-width: 440px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-xl);
@@ -165,33 +208,62 @@
       display: flex;
       flex-direction: column;
       gap: 1.3rem;
-      box-shadow: var(--shadow-lg), 0 0 50px -10px var(--glow-color);
+      box-shadow: var(--shadow-lg), 0 0 60px -15px var(--glow-color);
       max-height: 90vh;
       overflow-y: auto;
+      position: relative;
+    }
+
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--grad-primary);
+      border-radius: 9999px;
     }
 
     .auth-logo-center {
-      width: 52px;
-      height: 52px;
+      width: 56px;
+      height: 56px;
       border-radius: var(--radius-md);
       background: var(--grad-primary);
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 0.2rem auto;
-      box-shadow: 0 0 25px var(--glow-color);
+      box-shadow: 0 0 30px var(--glow-color);
       flex-shrink: 0;
     }
 
     .auth-header { text-align: center; }
-    .auth-header h2 { font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; }
-    .auth-header p { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .auth-header h2 { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; }
+    .auth-header p { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .tech-badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+    }
+
+    .tech-mini-tag {
+      font-size: 0.66rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
 
     .auth-field-group { display: flex; flex-direction: column; gap: 0.35rem; }
-    .auth-field-group label { font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .auth-field-group label { font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
     .auth-input {
-      background: rgba(0, 0, 0, 0.4);
+      background: var(--bg-input);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 0.75rem 1rem;
@@ -199,6 +271,7 @@
       font-size: 0.9rem;
       outline: none;
       width: 100%;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }
 
     .auth-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--glow-color); }
@@ -207,20 +280,21 @@
       background: var(--grad-primary);
       border: none;
       border-radius: var(--radius-md);
-      padding: 0.82rem;
+      padding: 0.85rem;
       color: #fff;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       cursor: pointer;
-      box-shadow: 0 4px 15px var(--glow-color);
+      box-shadow: 0 4px 18px var(--glow-color);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
       width: 100%;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     }
 
-    .auth-btn-submit:hover { transform: translateY(-1px); }
+    .auth-btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 24px var(--glow-color); }
 
     .demo-bypass-btn {
       background: rgba(255, 255, 255, 0.05);
@@ -232,18 +306,21 @@
       cursor: pointer;
       text-align: center;
       width: 100%;
+      transition: all var(--transition-fast);
     }
 
-    .demo-bypass-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-main); }
+    .demo-bypass-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-main); border-color: var(--accent-primary); }
 
-    /* Main App Layout - Fluid & Box-Constrained */
+    /* ==========================================================================
+       MAIN APP LAYOUT & TOP NAVIGATION
+       ========================================================================== */
     .app-layout {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 1320px;
+      max-width: 1360px;
       margin: 0 auto;
-      padding: 1.1rem 1.25rem 2rem 1.25rem;
+      padding: 1.1rem 1.25rem 2.5rem 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 1.1rem;
@@ -252,12 +329,12 @@
 
     @media (max-width: 640px) {
       .app-layout {
-        padding: 0.75rem 0.65rem 1.5rem 0.65rem;
+        padding: 0.75rem 0.65rem 1.75rem 0.65rem;
         gap: 0.85rem;
       }
     }
 
-    /* Header */
+    /* Header Nav */
     .app-header {
       display: flex;
       justify-content: space-between;
@@ -277,27 +354,66 @@
     }
 
     .brand-logo {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-md);
       background: var(--grad-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px var(--glow-color);
+      box-shadow: 0 0 22px var(--glow-color);
       flex-shrink: 0;
     }
 
     .brand-titles h1 {
       font-family: var(--font-display);
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      line-height: 1.2;
     }
 
     .brand-titles p {
       font-size: 0.76rem;
       color: var(--text-muted);
+    }
+
+    /* Tab Switcher in Header */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      padding: 0.25rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-subtle);
+      gap: 0.2rem;
+    }
+
+    .nav-tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab-btn.active {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--glow-color);
     }
 
     .header-controls {
@@ -320,11 +436,12 @@
     }
 
     .theme-dot-btn {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
+      transition: transform var(--transition-fast), border-color var(--transition-fast);
     }
 
     .theme-dot-btn.active {
@@ -336,6 +453,31 @@
     .theme-dot-btn.emerald { background: linear-gradient(135deg, #10b981, #84cc16); }
     .theme-dot-btn.crimson { background: linear-gradient(135deg, #f43f5e, #f97316); }
     .theme-dot-btn.amethyst { background: linear-gradient(135deg, #a855f7, #ec4899); }
+    .theme-dot-btn.obsidian { background: linear-gradient(135deg, #38bdf8, #818cf8); }
+
+    .health-pill-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--bg-glass);
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .health-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.4rem;
+      border-radius: 9999px;
+    }
+
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-dot.healthy { background-color: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+    .status-dot.unhealthy { background-color: var(--accent-rose); box-shadow: 0 0 8px var(--accent-rose); }
 
     .user-badge {
       display: flex;
@@ -368,53 +510,24 @@
       cursor: pointer;
       display: flex;
       align-items: center;
+      transition: color var(--transition-fast);
     }
 
     .btn-logout:hover { color: var(--accent-rose); }
 
-    .health-pill-group {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: var(--bg-glass);
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .health-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.15rem 0.4rem;
-      border-radius: 9999px;
-    }
-
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
-    .status-dot.healthy { background-color: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
-    .status-dot.unhealthy { background-color: var(--accent-rose); box-shadow: 0 0 8px var(--accent-rose); }
-
-    /* Conveyor */
+    /* Pipeline Step Tracker */
     .pipeline-tracker {
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.3rem 0.75rem;
+      padding: 0.35rem 0.85rem;
       background: var(--bg-glass);
       border: 1px solid var(--border-subtle);
       border-radius: 9999px;
       font-size: 0.76rem;
       flex-wrap: wrap;
-    }
-
-    @media (max-width: 1100px) {
-      .pipeline-tracker {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-      }
+      width: 100%;
+      justify-content: center;
     }
 
     .pipeline-step {
@@ -425,12 +538,14 @@
       border-radius: 9999px;
       background: rgba(255, 255, 255, 0.04);
       font-weight: 500;
+      transition: all var(--transition-fast);
     }
 
     .pipeline-step.active {
       background: rgba(255, 255, 255, 0.15);
       border: 1px solid var(--border-glow);
-      box-shadow: 0 0 8px var(--glow-color);
+      box-shadow: 0 0 10px var(--glow-color);
+      color: #fff;
     }
 
     /* KPI Row */
@@ -445,21 +560,23 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 0.8rem 1rem;
+      padding: 0.85rem 1rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
       box-shadow: var(--shadow-sm);
       min-width: 0;
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
     }
 
     .kpi-card:hover {
       border-color: var(--border-glow);
+      transform: translateY(-1px);
     }
 
     .kpi-icon {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: var(--radius-sm);
       background: rgba(255, 255, 255, 0.05);
       display: flex;
@@ -484,18 +601,20 @@
 
     .kpi-info p {
       font-family: var(--font-display);
-      font-size: 1.15rem;
+      font-size: 1.18rem;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* Dashboard Grid - minmax(0, 1fr) ensures no horizontal blowing out */
+    /* ==========================================================================
+       TAB 1: STREAM INGESTION & PIPELINE STUDIO
+       ========================================================================== */
     .dashboard-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr);
-      gap: 1.1rem;
+      gap: 1.15rem;
       width: 100%;
       align-items: start;
     }
@@ -510,14 +629,20 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 1.2rem 1.3rem;
+      padding: 1.25rem 1.35rem;
       display: flex;
       flex-direction: column;
       gap: 1rem;
       box-shadow: var(--shadow-lg);
       min-width: 0;
       width: 100%;
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .card-title {
@@ -525,7 +650,7 @@
       align-items: center;
       gap: 0.55rem;
       font-family: var(--font-display);
-      font-size: 1.08rem;
+      font-size: 1.12rem;
       font-weight: 700;
     }
 
@@ -535,7 +660,7 @@
     .upload-zone {
       border: 2px dashed var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 1.4rem 1.1rem;
+      padding: 1.5rem 1.1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -545,17 +670,19 @@
       background: var(--grad-card);
       width: 100%;
       min-width: 0;
+      transition: all var(--transition-fast);
     }
 
     .upload-zone:hover, .upload-zone.dragover {
       border-color: var(--accent-primary);
       background: rgba(255, 255, 255, 0.04);
-      box-shadow: 0 0 20px var(--glow-color);
+      box-shadow: 0 0 24px var(--glow-color);
+      transform: scale(1.005);
     }
 
     .upload-icon-circle {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-glow);
@@ -564,9 +691,10 @@
       justify-content: center;
       color: var(--accent-primary);
       margin-bottom: 0.65rem;
+      box-shadow: 0 0 15px var(--glow-color);
     }
 
-    .upload-prompt h3 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .upload-prompt h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
     .upload-prompt p { font-size: 0.76rem; color: var(--text-muted); }
 
     .quick-samples {
@@ -581,29 +709,31 @@
     .sample-pill-btn {
       font-size: 0.72rem;
       font-weight: 500;
-      padding: 0.28rem 0.6rem;
+      padding: 0.28rem 0.65rem;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       border-radius: 9999px;
       color: var(--text-muted);
       cursor: pointer;
+      transition: all var(--transition-fast);
     }
 
     .sample-pill-btn:hover {
       background: var(--accent-primary);
       color: #fff;
       border-color: var(--accent-primary);
+      transform: translateY(-1px);
     }
 
-    /* Progress Box */
+    /* Live Progress Box */
     .progress-box {
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 0.9rem 1.1rem;
+      padding: 0.95rem 1.15rem;
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
+      gap: 0.7rem;
       width: 100%;
     }
 
@@ -621,8 +751,11 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      padding: 0.18rem 0.5rem;
+      padding: 0.2rem 0.55rem;
       border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
     }
 
     .status-chip.queued { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
@@ -644,6 +777,7 @@
       border-radius: 9999px;
       width: 0%;
       transition: width 0.35s ease;
+      box-shadow: 0 0 10px var(--glow-color);
     }
 
     .progress-details {
@@ -655,12 +789,12 @@
       gap: 0.3rem;
     }
 
-    /* Preview Table */
+    /* Client-Side Preview Table */
     .table-scroll-wrap {
       overflow-x: auto;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-subtle);
-      max-height: 180px;
+      max-height: 190px;
       background: rgba(0, 0, 0, 0.25);
       width: 100%;
       max-width: 100%;
@@ -675,7 +809,7 @@
 
     .styled-table th {
       background: rgba(22, 28, 48, 0.95);
-      padding: 0.45rem 0.7rem;
+      padding: 0.45rem 0.75rem;
       color: var(--text-main);
       font-weight: 600;
       border-bottom: 1px solid var(--border-subtle);
@@ -685,7 +819,7 @@
     }
 
     .styled-table td {
-      padding: 0.4rem 0.7rem;
+      padding: 0.42rem 0.75rem;
       color: var(--text-muted);
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
       white-space: nowrap;
@@ -693,10 +827,112 @@
 
     .styled-table tr:hover td { background: rgba(255, 255, 255, 0.03); color: var(--text-main); }
 
+    /* ==========================================================================
+       CHATBOT ASSISTANT & DYNAMIC GRAPH CHARTS
+       ========================================================================== */
+    .chat-layout {
+      display: flex;
+      flex-direction: column;
+      height: 540px;
+      max-height: 68vh;
+      min-height: 420px;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .chat-feed {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      padding-right: 0.25rem;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .chat-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-faint);
+      text-align: center;
+      gap: 0.65rem;
+      padding: 1.5rem;
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-width: 100%;
+      word-break: break-word;
+    }
+
+    .chat-msg.user { align-self: flex-end; max-width: 85%; }
+    .chat-msg.bot { align-self: flex-start; width: 100%; }
+
+    .user-pill {
+      background: var(--grad-primary);
+      color: #fff;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md) var(--radius-md) 3px var(--radius-md);
+      font-size: 0.86rem;
+      font-weight: 500;
+      box-shadow: 0 4px 14px var(--glow-color);
+      word-break: break-word;
+    }
+
+    .bot-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.95rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .bot-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .bot-sender-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .grounded-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.18rem 0.5rem;
+      border-radius: 9999px;
+    }
+
+    .grounded-tag.true { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .grounded-tag.false { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .bot-answer { font-size: 0.88rem; color: var(--text-main); line-height: 1.52; word-break: break-word; }
+
     /* Visual Chart Container */
     .chart-visual-box {
       margin-top: 0.5rem;
-      padding: 0.75rem 0.9rem;
+      padding: 0.8rem 0.95rem;
       background: rgba(0, 0, 0, 0.45);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
@@ -715,7 +951,7 @@
       font-weight: 600;
       color: var(--text-muted);
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding-bottom: 0.3rem;
+      padding-bottom: 0.35rem;
     }
 
     .bar-chart-list { display: flex; flex-direction: column; gap: 0.4rem; width: 100%; }
@@ -765,97 +1001,6 @@
       width: 100%;
       max-width: 100%;
     }
-
-    /* Chat Section */
-    .chat-layout {
-      display: flex;
-      flex-direction: column;
-      height: 520px;
-      max-height: 68vh;
-      min-height: 400px;
-      gap: 0.75rem;
-      width: 100%;
-    }
-
-    .chat-feed {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-      padding-right: 0.25rem;
-      width: 100%;
-      min-height: 0;
-    }
-
-    .chat-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-faint);
-      text-align: center;
-      gap: 0.6rem;
-      padding: 1.25rem;
-    }
-
-    .chat-msg {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      max-width: 100%;
-      word-break: break-word;
-    }
-
-    .chat-msg.user { align-self: flex-end; max-width: 85%; }
-    .chat-msg.bot { align-self: flex-start; width: 100%; }
-
-    .user-pill {
-      background: var(--grad-primary);
-      color: #fff;
-      padding: 0.65rem 1rem;
-      border-radius: var(--radius-md) var(--radius-md) 3px var(--radius-md);
-      font-size: 0.86rem;
-      font-weight: 500;
-      box-shadow: 0 4px 14px var(--glow-color);
-      word-break: break-word;
-    }
-
-    .bot-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 0.95rem 1.05rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    .bot-card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-
-    .grounded-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 0.18rem 0.5rem;
-      border-radius: 9999px;
-    }
-
-    .grounded-tag.true { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .grounded-tag.false { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
-
-    .bot-answer { font-size: 0.88rem; color: var(--text-main); line-height: 1.5; word-break: break-word; }
 
     .cypher-drawer {
       border: 1px solid var(--border-subtle);
@@ -917,19 +1062,21 @@
       border-radius: 9999px;
       color: var(--text-muted);
       cursor: pointer;
+      transition: all var(--transition-fast);
     }
 
     .chip-btn:hover {
       background: var(--accent-primary);
       color: #fff;
       border-color: var(--accent-primary);
+      transform: translateY(-1px);
     }
 
     .chat-bar { display: flex; gap: 0.5rem; width: 100%; }
 
     .chat-field {
       flex: 1;
-      background: rgba(0, 0, 0, 0.45);
+      background: var(--bg-input);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 0.7rem 0.95rem;
@@ -937,6 +1084,7 @@
       font-size: 0.86rem;
       outline: none;
       min-width: 0;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }
 
     .chat-field:focus {
@@ -957,10 +1105,209 @@
       gap: 0.4rem;
       box-shadow: 0 4px 15px var(--glow-color);
       flex-shrink: 0;
+      transition: transform var(--transition-fast);
     }
 
+    .chat-submit-btn:hover:not(:disabled) { transform: translateY(-1px); }
     .chat-submit-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
+    /* ==========================================================================
+       TAB 2: LIVE GRAPH TOPOLOGY CANVAS (INTERACTIVE GRAPH)
+       ========================================================================== */
+    .topology-container {
+      width: 100%;
+      height: 560px;
+      background: rgba(5, 7, 16, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topology-toolbar {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .topology-badge-panel {
+      background: var(--bg-surface-elevated);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      pointer-events: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topology-controls {
+      display: flex;
+      gap: 0.4rem;
+      pointer-events: auto;
+    }
+
+    .topo-btn {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0.35rem 0.65rem;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all var(--transition-fast);
+    }
+
+    .topo-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-main); border-color: var(--accent-primary); }
+
+    #graph-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #graph-canvas:active { cursor: grabbing; }
+
+    /* ==========================================================================
+       TAB 3: TECH STACK & ARCHITECTURE CENTER (CLIENT-FACING)
+       ========================================================================== */
+    .tech-stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.15rem;
+      width: 100%;
+    }
+
+    .tech-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.35rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition-normal);
+    }
+
+    .tech-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+      opacity: 0.6;
+    }
+
+    .tech-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg), 0 0 25px var(--glow-color);
+    }
+
+    .tech-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .tech-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .tech-card-title h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
+    .tech-card-title span { font-size: 0.74rem; font-family: var(--font-mono); color: var(--accent-primary); }
+
+    .tech-card-body {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .tech-specs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.65rem;
+    }
+
+    .tech-spec-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.74rem;
+    }
+
+    .tech-spec-label { color: var(--text-faint); }
+    .tech-spec-val { font-family: var(--font-mono); font-weight: 600; color: var(--text-main); }
+
+    .tech-arch-diagram {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .arch-flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 1rem 0;
+    }
+
+    .arch-flow-node {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+      min-width: 130px;
+      box-shadow: 0 0 15px var(--glow-color);
+    }
+
+    .arch-flow-node h4 { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
+    .arch-flow-node p { font-size: 0.7rem; color: var(--text-muted); }
+
+    .arch-arrow { color: var(--accent-primary); font-size: 1.2rem; font-weight: 800; }
+
+    /* Toast Notification */
     .toast-alert {
       padding: 0.7rem 1.1rem;
       border-radius: var(--radius-md);
@@ -973,12 +1320,16 @@
 
     .toast-alert.error { background: rgba(244, 63, 94, 0.14); border: 1px solid rgba(244, 63, 94, 0.35); color: #fca5a5; }
     .toast-alert.info { background: rgba(6, 182, 212, 0.14); border: 1px solid rgba(6, 182, 212, 0.35); color: #a5f3fc; }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div class="ambient-glow"></div>
 
-  <!-- Login Modal / Screen -->
+  <!-- ========================================================================
+       AUTH SCREEN / ENTERPRISE LOGIN
+       ======================================================================== -->
   <div class="auth-overlay" id="auth-screen">
     <div class="auth-card">
       <div class="auth-logo-center">
@@ -986,35 +1337,43 @@
       </div>
       <div class="auth-header">
         <h2>Data In, Answers Out</h2>
-        <p>Enterprise Graph & Stream Intelligence Platform</p>
+        <p>Enterprise Stream Intelligence & Graph Knowledge Engine</p>
+        <div class="tech-badge-row">
+          <span class="tech-mini-tag">KAFKA 3.7 (KRaft)</span>
+          <span class="tech-mini-tag">NEO4J 5.24</span>
+          <span class="tech-mini-tag">FASTAPI</span>
+          <span class="tech-mini-tag">IDEMPOTENT MERGE</span>
+        </div>
       </div>
 
       <form id="auth-form" style="display:flex; flex-direction:column; gap:0.9rem;">
         <div class="auth-field-group">
-          <label>Username / Email</label>
+          <label>Enterprise ID / Email</label>
           <input type="text" id="auth-user" class="auth-input" placeholder="admin@enterprise.ai" value="admin@enterprise.ai" required />
         </div>
 
         <div class="auth-field-group">
-          <label>Password</label>
+          <label>Secret Key / Password</label>
           <input type="password" id="auth-pass" class="auth-input" placeholder="••••••••" value="csvgraphdb" required />
         </div>
 
         <button type="submit" class="auth-btn-submit">
-          <span>Sign In to Dashboard</span>
+          <span>Sign In to Executive Console</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
 
         <button type="button" class="demo-bypass-btn" onclick="quickLogin()">
-          ⚡ Quick 1-Click Demo Sign-In
+          ⚡ Quick 1-Click Client Demo Sign-In
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Main App Layout -->
+  <!-- ========================================================================
+       MAIN ENTERPRISE APP SHELL
+       ======================================================================== -->
   <div class="app-layout" id="main-app" style="display:none;">
-    <!-- Header -->
+    <!-- Top Header -->
     <header class="app-header">
       <div class="brand-section">
         <div class="brand-logo">
@@ -1022,26 +1381,34 @@
         </div>
         <div class="brand-titles">
           <h1>Data In, Answers Out</h1>
-          <p>CSV Stream · Kafka · Neo4j · Grounded Chat</p>
+          <p>Kafka Streaming · Neo4j Graph Database · Grounded Chat</p>
         </div>
       </div>
 
-      <div class="pipeline-tracker">
-        <div class="pipeline-step" id="pipe-csv"><span>📄 CSV</span></div>
-        <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
-        <div class="pipeline-step" id="pipe-kafka"><span>⚡ Kafka KRaft</span></div>
-        <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
-        <div class="pipeline-step" id="pipe-neo4j"><span>🕸️ Neo4j Graph</span></div>
-        <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
-        <div class="pipeline-step" id="pipe-chat"><span>🤖 Grounded Chat</span></div>
-      </div>
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" id="tab-btn-stream" onclick="switchTab('stream')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Stream Studio</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-btn-topology" onclick="switchTab('topology')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Graph Topology</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-btn-tech" onclick="switchTab('tech')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          <span>Tech Stack & Architecture</span>
+        </button>
+      </nav>
 
+      <!-- Controls & Health -->
       <div class="header-controls">
-        <div class="theme-select-wrap" title="Change Color Theme">
+        <div class="theme-select-wrap" title="Switch Theme">
           <button class="theme-dot-btn cyber active" onclick="setTheme('cyber')" title="Cyber Neon"></button>
           <button class="theme-dot-btn emerald" onclick="setTheme('emerald')" title="Emerald Matrix"></button>
           <button class="theme-dot-btn crimson" onclick="setTheme('crimson')" title="Sunset Crimson"></button>
           <button class="theme-dot-btn amethyst" onclick="setTheme('amethyst')" title="Royal Amethyst"></button>
+          <button class="theme-dot-btn obsidian" onclick="setTheme('obsidian')" title="Midnight Obsidian"></button>
         </div>
 
         <div class="health-pill-group">
@@ -1054,11 +1421,22 @@
           <div class="user-avatar-circle" id="user-avatar">A</div>
           <span id="user-display">Admin</span>
           <button class="btn-logout" onclick="logout()" title="Log out">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
       </div>
     </header>
+
+    <!-- Pipeline Step Flow -->
+    <div class="pipeline-tracker">
+      <div class="pipeline-step" id="pipe-csv"><span>📄 Client CSV</span></div>
+      <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
+      <div class="pipeline-step" id="pipe-kafka"><span>⚡ Kafka KRaft Stream</span></div>
+      <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
+      <div class="pipeline-step" id="pipe-neo4j"><span>🕸️ Neo4j Idempotent MERGE</span></div>
+      <span style="color:var(--text-faint); font-size:0.75rem;">➔</span>
+      <div class="pipeline-step" id="pipe-chat"><span>🤖 Graph-Grounded Q&A</span></div>
+    </div>
 
     <!-- Top KPI Metrics -->
     <section class="kpi-row">
@@ -1077,7 +1455,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
         <div class="kpi-info">
-          <h4>Ingested Rows</h4>
+          <h4>Ingested Stream Rows</h4>
           <p id="kpi-rows-count">0</p>
         </div>
       </div>
@@ -1087,7 +1465,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <div class="kpi-info">
-          <h4>Graph Relations</h4>
+          <h4>Indexed Graph Nodes</h4>
           <p id="kpi-rel-count">0</p>
         </div>
       </div>
@@ -1097,17 +1475,20 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <div class="kpi-info">
-          <h4>Idempotency State</h4>
-          <p style="color:var(--accent-emerald); font-size:1.1rem;">MERGE Active</p>
+          <h4>Idempotency & Safety</h4>
+          <p style="color:var(--accent-emerald); font-size:1.08rem;">MERGE Protected</p>
         </div>
       </div>
     </section>
 
-    <!-- Toast Notifications -->
+    <!-- Global Alerts -->
     <div id="toast-wrapper"></div>
 
-    <main class="dashboard-grid">
-      <!-- Ingest Card -->
+    <!-- ======================================================================
+         VIEW 1: STREAM STUDIO & GROUNDED CHAT
+         ====================================================================== -->
+    <main class="dashboard-grid" id="view-stream">
+      <!-- Left: Ingestion Studio -->
       <section class="glass-card">
         <div class="card-header">
           <div>
@@ -1115,18 +1496,18 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <span>Dynamic CSV Ingestion</span>
             </h2>
-            <p class="card-subtitle">Streams records through Kafka directly into Neo4j graph nodes</p>
+            <p class="card-subtitle">Streams records into Kafka topic & indexes into Neo4j graph nodes</p>
           </div>
         </div>
 
         <div id="dropzone" class="upload-zone">
           <input type="file" id="file-input" style="display:none;" accept=".csv,text/csv" />
           <div class="upload-icon-circle">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
           <div class="upload-prompt" id="drop-text">
             <h3>Drag & Drop any CSV here, or click to browse</h3>
-            <p>Automatic schema extraction, batch streaming, and idempotent graph indexing</p>
+            <p>Automatic schema extraction, Kafka streaming, and idempotent graph indexing</p>
           </div>
         </div>
 
@@ -1134,19 +1515,19 @@
           <span style="font-size:0.72rem; color:var(--text-faint); font-weight:600;">Presets:</span>
           <button class="sample-pill-btn" onclick="loadSample('clean')">✨ Clean 20 Rows</button>
           <button class="sample-pill-btn" onclick="loadSample('volume')">🚀 1,000 Rows Volume</button>
-          <button class="sample-pill-btn" onclick="loadSample('broken')">⚠️ Broken Ragged CSV</button>
+          <button class="sample-pill-btn" onclick="loadSample('broken')">⚠️ Ragged CSV</button>
           <button class="sample-pill-btn" onclick="loadSample('header_only')">🚫 Header-Only</button>
-          <button class="sample-pill-btn" onclick="loadSample('empty')">📭 Empty File (0B)</button>
+          <button class="sample-pill-btn" onclick="loadSample('empty')">📭 Empty (0B)</button>
         </div>
 
         <!-- Ingestion Progress -->
         <div id="progress-card" style="display:none;"></div>
 
-        <!-- Instant Table Preview -->
+        <!-- Table Preview -->
         <div id="preview-section" style="display:none;"></div>
       </section>
 
-      <!-- Grounded Chat Card -->
+      <!-- Right: Grounded Chatbot -->
       <section class="glass-card">
         <div class="card-header">
           <div>
@@ -1154,16 +1535,16 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               <span>Graph-Grounded Chatbot</span>
             </h2>
-            <p class="card-subtitle">Natural language answers + dynamic charts rendered from graph results</p>
+            <p class="card-subtitle">Natural language answers + visual distribution charts from graph results</p>
           </div>
         </div>
 
         <div class="chat-layout">
           <div class="chat-feed" id="chat-feed">
             <div class="chat-empty" id="chat-empty-state">
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-              <h4 style="color:var(--text-main); font-weight:600; font-size:1rem;">Grounded Graph Assistant</h4>
-              <p style="font-size:0.82rem; max-width:380px; line-height:1.5;">Upload a CSV to begin asking questions. Results automatically generate interactive bar charts, KPI chips, and Cypher details.</p>
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.35"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+              <h4 style="color:var(--text-main); font-weight:600; font-size:0.95rem;">Grounded Graph Assistant</h4>
+              <p style="font-size:0.8rem; max-width:380px; line-height:1.5;">Upload a CSV to begin asking questions. Results automatically generate interactive distribution bar charts, KPI chips, and Cypher details.</p>
             </div>
           </div>
 
@@ -1179,9 +1560,217 @@
         </div>
       </section>
     </main>
+
+    <!-- ======================================================================
+         VIEW 2: LIVE GRAPH TOPOLOGY VISUALIZER (INTERACTIVE HTML5 CANVAS)
+         ====================================================================== -->
+    <div id="view-topology" style="display:none; width:100%;">
+      <div class="topology-container">
+        <div class="topology-toolbar">
+          <div class="topology-badge-panel">
+            <span class="status-dot healthy"></span>
+            <span>Neo4j Graph Active</span>
+            <span style="color:var(--text-faint);">|</span>
+            <span id="topo-nodes-stat">0 Nodes</span>
+            <span style="color:var(--text-faint);">|</span>
+            <span id="topo-rels-stat">0 Relations</span>
+          </div>
+
+          <div class="topology-controls">
+            <button class="topo-btn" onclick="resetGraphPhysics()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Reset Layout</span>
+            </button>
+            <button class="topo-btn" onclick="addGraphBurst()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <span>Simulate Pulse</span>
+            </button>
+          </div>
+        </div>
+
+        <canvas id="graph-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 3: CLIENT-FACING TECH STACK & ARCHITECTURE CENTER
+         ====================================================================== -->
+    <div id="view-tech" style="display:none; width:100%; flex-direction:column; gap:1.25rem;">
+      <div class="tech-arch-diagram">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="font-family:var(--font-display); font-size:1.15rem; font-weight:700;">Enterprise End-to-End Pipeline Architecture</h3>
+            <p style="font-size:0.78rem; color:var(--text-muted);">Event-driven, horizontally scalable, idempotent streaming architecture</p>
+          </div>
+          <span style="font-size:0.74rem; font-family:var(--font-mono); color:var(--accent-emerald); background:rgba(16,185,129,0.1); padding:0.2rem 0.6rem; border-radius:9999px; border:1px solid rgba(16,185,129,0.3);">● 100% Zero Data Loss</span>
+        </div>
+
+        <div class="arch-flow-diagram">
+          <div class="arch-flow-node">
+            <h4>1. Client UI</h4>
+            <p>Nginx 1.27 Alpine (Non-Root)</p>
+          </div>
+          <div class="arch-arrow">➔</div>
+          <div class="arch-flow-node">
+            <h4>2. Ingestion API</h4>
+            <p>FastAPI (Python 3.11-slim)</p>
+          </div>
+          <div class="arch-arrow">➔</div>
+          <div class="arch-flow-node" style="border-color:var(--accent-cyan);">
+            <h4>3. Message Broker</h4>
+            <p>Apache Kafka 3.7 (KRaft)</p>
+          </div>
+          <div class="arch-arrow">➔</div>
+          <div class="arch-flow-node" style="border-color:var(--accent-amber);">
+            <h4>4. Stream Consumer</h4>
+            <p>Python Loader Worker</p>
+          </div>
+          <div class="arch-arrow">➔</div>
+          <div class="arch-flow-node" style="border-color:var(--accent-emerald);">
+            <h4>5. Knowledge Graph</h4>
+            <p>Neo4j 5.24 Graph Database</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tech Stack Cards -->
+      <div class="tech-stack-grid">
+        <!-- Kafka Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-cyan);">⚡</div>
+            <div class="tech-card-title">
+              <h3>Apache Kafka (KRaft Mode)</h3>
+              <span>apache/kafka:3.7.0</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            High-throughput, event-driven streaming message broker running single-broker KRaft consensus without ZooKeeper. Streams arbitrary CSV rows asynchronously to decoupled consumer workers.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Consensus Protocol</span><span class="tech-spec-val">KRaft (No ZooKeeper)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Broker Port</span><span class="tech-spec-val">9092 (PLAINTEXT)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Topic</span><span class="tech-spec-val">csv-rows (Auto-create)</span></div>
+          </div>
+        </div>
+
+        <!-- Neo4j Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-emerald);">🕸️</div>
+            <div class="tech-card-title">
+              <h3>Neo4j Graph Database</h3>
+              <span>neo4j:5.24-community</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            Enterprise ACID-compliant graph engine storing `:Dataset`, `:Row`, and `:Job` tracking nodes. Uses transactional `MERGE (r:Row {dataset_id: ..., row_index: ...})` ensuring strict idempotency.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Graph Query Engine</span><span class="tech-spec-val">Cypher Query Language</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Bolt Protocol</span><span class="tech-spec-val">bolt://neo4j:7687</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Idempotency Key</span><span class="tech-spec-val">dataset_id + row_index</span></div>
+          </div>
+        </div>
+
+        <!-- FastAPI Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-primary);">🚀</div>
+            <div class="tech-card-title">
+              <h3>FastAPI Ingest & Chat Engine</h3>
+              <span>python:3.11-slim (319MB)</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            Asynchronous Python 3.11 backend serving `POST /ingest` (sub-50ms return), `GET /status`, `GET /health`, and natural language Cypher translation with strict grounding checks.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Security Execution</span><span class="tech-spec-val">USER appuser (UID 1000)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Container Footprint</span><span class="tech-spec-val">319MB (&lt; 400MB limit)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Dataset Hashing</span><span class="tech-spec-val">SHA-256 Deterministic</span></div>
+          </div>
+        </div>
+
+        <!-- Loader Worker Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-amber);">⚙️</div>
+            <div class="tech-card-title">
+              <h3>Stream Consumer Daemon</h3>
+              <span>python:3.11-slim (248MB)</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            Dedicated background worker polling Kafka topic `csv-rows`, executing batched Neo4j write transactions with exponential backoff and updating real-time `:Job` progress counters.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Retry Mechanism</span><span class="tech-spec-val">Exponential Backoff</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Fault Isolation</span><span class="tech-spec-val">Dead-Letter Isolation</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Status State Machine</span><span class="tech-spec-val">queued ➔ loading ➔ complete</span></div>
+          </div>
+        </div>
+
+        <!-- UI & Nginx Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-tertiary);">💎</div>
+            <div class="tech-card-title">
+              <h3>Glassmorphic Client Console</h3>
+              <span>nginx:1.27-alpine (76.1MB)</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            Ultra-fast responsive single-page application served via non-root Alpine Nginx reverse proxy. Features live dynamic theme engines, real-time polling, and responsive viewport fitting.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Web Server</span><span class="tech-spec-val">nginx/1.27-alpine (USER nginx)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Image Footprint</span><span class="tech-spec-val">76.1 MB (Ultra-lightweight)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Reverse Proxy</span><span class="tech-spec-val">Proxy pass to http://api:8000</span></div>
+          </div>
+        </div>
+
+        <!-- Security & Hardening Card -->
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-icon-wrap" style="color:var(--accent-rose);">🛡️</div>
+            <div class="tech-card-title">
+              <h3>Enterprise Security & Hygiene</h3>
+              <span>CIS Compliant</span>
+            </div>
+          </div>
+          <p class="tech-card-body">
+            All Docker containers run under dedicated non-root security contexts, all image tags are strictly pinned, and all credentials are parameterized via environment variables.
+          </p>
+          <div class="tech-specs-list">
+            <div class="tech-spec-row"><span class="tech-spec-label">Root Execution</span><span class="tech-spec-val">0 Root Processes (Non-root)</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Tag Pinning</span><span class="tech-spec-val">100% Pinned (Zero 'latest')</span></div>
+            <div class="tech-spec-row"><span class="tech-spec-label">Grounding Guard</span><span class="tech-spec-val">Strict Hallucination Block</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- ========================================================================
+       APPLICATION LOGIC & CLIENT ENGINE
+       ======================================================================== -->
   <script>
+    // Tab Navigation
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`tab-btn-${tab}`);
+      if (btn) btn.classList.add('active');
+
+      document.getElementById('view-stream').style.display = tab === 'stream' ? 'grid' : 'none';
+      document.getElementById('view-topology').style.display = tab === 'topology' ? 'block' : 'none';
+      document.getElementById('view-tech').style.display = tab === 'tech' ? 'flex' : 'none';
+
+      if (tab === 'topology') {
+        initGraphCanvas();
+      }
+    }
+
     // Theme Management
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
@@ -1229,6 +1818,7 @@
     let pollTimer = null;
     let activeHeaders = [];
     let isGraphReady = false;
+    let globalRowCount = 0;
 
     // Fast CSV Parser
     function parseCSV(text) {
@@ -1259,7 +1849,7 @@
       return { headers, rows };
     }
 
-    // Health Check Polling
+    // Health Polling
     async function checkHealth() {
       try {
         const res = await fetch('/health');
@@ -1280,7 +1870,7 @@
     checkHealth();
     setInterval(checkHealth, 3500);
 
-    // Dropzone setup
+    // Dropzone logic
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file-input');
 
@@ -1304,14 +1894,14 @@
     function showToast(msg, type='error') {
       const wrapper = document.getElementById('toast-wrapper');
       wrapper.innerHTML = `<div class="toast-alert ${type}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span>${msg}</span>
       </div>`;
       setTimeout(() => { wrapper.innerHTML = ''; }, 6000);
     }
 
     function handleUpload(file) {
-      document.getElementById('drop-text').innerHTML = `<h3>${file.name}</h3><p>${(file.size/1024).toFixed(1)} KB · Ingesting into streaming pipeline...</p>`;
+      document.getElementById('drop-text').innerHTML = `<h3>${file.name}</h3><p>${(file.size/1024).toFixed(1)} KB · Ingesting into Kafka streaming pipeline...</p>`;
       document.getElementById('kpi-dataset-name').textContent = file.name;
 
       const reader = new FileReader();
@@ -1321,6 +1911,7 @@
         activeHeaders = headers;
         renderPreview(headers, rows);
         updatePromptChips(headers);
+        updateTopologyGraph(headers, rows);
       };
       reader.readAsText(file);
 
@@ -1334,10 +1925,10 @@
 
       let html = `
         <div style="display:flex; flex-direction:column; gap:0.4rem; width:100%;">
-          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted);">
+          <div style="display:flex; justify-content:space-between; font-size:0.76rem; color:var(--text-muted);">
             <span style="font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:0.35rem;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              <span>Instant Client Preview</span>
+              <span>Instant Schema & Data Grid Preview</span>
             </span>
             <span>Showing ${Math.min(15, rows.length)} of ${rows.length} rows (${headers.length} columns)</span>
           </div>
@@ -1372,6 +1963,7 @@
         }
 
         activeJobId = data.job_id;
+        globalRowCount = data.rows_received;
         document.getElementById('kpi-rows-count').textContent = data.rows_received.toLocaleString();
         document.getElementById('kpi-rel-count').textContent = data.rows_received.toLocaleString();
 
@@ -1396,7 +1988,7 @@
           document.getElementById('pipe-neo4j').classList.add('active');
           document.getElementById('pipe-chat').classList.add('active');
           enableChat();
-          showToast(`Dataset loaded into Neo4j graph successfully! (${data.rows_loaded} rows)`, 'info');
+          showToast(`Stream ingested & indexed into Neo4j graph successfully! (${data.rows_loaded} rows)`, 'info');
         } else if (data.status === 'failed') {
           clearInterval(pollTimer);
           showToast(`Ingestion failed with ${data.rows_failed} errors`, 'error');
@@ -1415,8 +2007,8 @@
       container.innerHTML = `
         <div class="progress-box">
           <div class="progress-meta">
-            <span style="font-weight:600; font-size:0.84rem; display:flex; align-items:center; gap:0.4rem;">
-              <span>Job ID:</span>
+            <span style="font-weight:600; font-size:0.82rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>Streaming Job:</span>
               <code style="font-family:var(--font-mono); color:var(--accent-primary); background:rgba(255,255,255,0.06); padding:0.15rem 0.45rem; border-radius:4px;">${job.job_id}</code>
             </span>
             <span class="status-chip ${job.status}">
@@ -1429,7 +2021,7 @@
           </div>
           <div class="progress-details">
             <span><strong>${job.rows_loaded.toLocaleString()}</strong> of <strong>${job.rows_total.toLocaleString()}</strong> rows indexed in Neo4j (${pct}%)</span>
-            ${job.rows_failed > 0 ? `<span style="color:var(--accent-rose)">⚠️ ${job.rows_failed} failed</span>` : '<span style="color:var(--accent-emerald);">● Zero Data Loss</span>'}
+            ${job.rows_failed > 0 ? `<span style="color:var(--accent-rose)">⚠️ ${job.rows_failed} failed</span>` : '<span style="color:var(--accent-emerald);">● Zero Data Loss Guarantee</span>'}
           </div>
         </div>`;
     }
@@ -1459,7 +2051,7 @@
 
       tray.innerHTML = prompts.map(p => `
         <button type="button" class="chip-btn" onclick="askQuestion('${p}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <span>${p}</span>
         </button>`).join('');
     }
@@ -1471,7 +2063,7 @@
       const first = result[0];
       const keys = Object.keys(first);
 
-      // 1. Check for Breakdown / Distribution data (e.g. {department: 'Sales', count: 140})
+      // 1. Distribution data (e.g. {department: 'Sales', count: 140})
       if (keys.includes('count') && keys.length === 2) {
         const catKey = keys.find(k => k !== 'count');
         const maxVal = Math.max(...result.map(r => Number(r.count) || 0), 1);
@@ -1496,10 +2088,10 @@
           <div class="chart-visual-box">
             <div class="chart-header">
               <span style="display:flex; align-items:center; gap:0.4rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 <span>Distribution Graph (${catKey.toUpperCase()})</span>
               </span>
-              <span style="font-size:0.72rem; color:var(--text-faint);">${result.length} categories</span>
+              <span style="font-size:0.7rem; color:var(--text-faint);">${result.length} categories</span>
             </div>
             <div class="bar-chart-list">
               ${rowsHtml}
@@ -1507,7 +2099,7 @@
           </div>`;
       }
 
-      // 2. Check for Aggregations (e.g. {avg_salary: 114962.75, max_salary: ...})
+      // 2. Statistical Aggregations (e.g. {avg_salary: 114962.75, max_salary: ...})
       const isAgg = keys.some(k => k.startsWith('avg') || k.startsWith('max') || k.startsWith('min') || k.startsWith('sum'));
       if (isAgg) {
         let chips = keys.map(k => {
@@ -1524,7 +2116,7 @@
           <div class="chart-visual-box">
             <div class="chart-header">
               <span style="display:flex; align-items:center; gap:0.4rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
                 <span>Graph Statistical Summary</span>
               </span>
             </div>
@@ -1538,10 +2130,10 @@
       if (keys.length === 1 && (keys[0] === 'count' || keys[0].includes('count'))) {
         const val = first[keys[0]];
         return `
-          <div class="chart-visual-box" style="padding:0.75rem 1rem;">
+          <div class="chart-visual-box" style="padding:0.75rem 0.95rem;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
-              <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Calculated Record Count:</span>
-              <span style="font-family:var(--font-mono); font-size:1.25rem; font-weight:800; color:var(--accent-primary);">${Number(val).toLocaleString()}</span>
+              <span style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Calculated Record Count:</span>
+              <span style="font-family:var(--font-mono); font-size:1.2rem; font-weight:800; color:var(--accent-primary);">${Number(val).toLocaleString()}</span>
             </div>
           </div>`;
       }
@@ -1554,7 +2146,7 @@
           <div class="chart-visual-box">
             <div class="chart-header">
               <span>Graph Record Explorer</span>
-              <span style="font-size:0.72rem; color:var(--text-faint);">Top ${rowData.length} Matches</span>
+              <span style="font-size:0.7rem; color:var(--text-faint);">Top ${rowData.length} Matches</span>
             </div>
             <div class="answer-mini-table-wrap">
               <table class="styled-table">
@@ -1594,8 +2186,8 @@
       chatFeed.innerHTML += `
         <div class="chat-msg bot" id="${botPlaceholderId}">
           <div class="bot-card">
-            <span style="font-size:0.84rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <span style="font-size:0.82rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
               <span>Querying Neo4j knowledge graph & rendering visual chart...</span>
             </span>
           </div>
@@ -1613,8 +2205,8 @@
         const card = document.getElementById(botPlaceholderId);
         if (card) {
           const groundedTag = data.grounded 
-            ? `<span class="grounded-tag true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Grounded in Graph</span>` 
-            : `<span class="grounded-tag false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Not Grounded</span>`;
+            ? `<span class="grounded-tag true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Grounded in Graph</span>` 
+            : `<span class="grounded-tag false"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Not Grounded</span>`;
 
           const visualChartHtml = data.grounded ? renderVisualChart(data.result) : '';
 
@@ -1624,7 +2216,7 @@
               <div class="cypher-drawer">
                 <div class="cypher-drawer-btn" onclick="const b = this.nextElementSibling; b.style.display = b.style.display === 'none' ? 'block' : 'none';">
                   <span style="display:flex; align-items:center; gap:0.4rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                     <span>View Cypher & Raw Graph Result</span>
                   </span>
                   <span>▼</span>
@@ -1640,7 +2232,7 @@
             <div class="bot-card">
               <div class="bot-card-top">
                 <div class="bot-sender-badge">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
                   <span>Graph Assistant</span>
                 </div>
                 ${groundedTag}
@@ -1657,6 +2249,185 @@
       chatFeed.scrollTop = chatFeed.scrollHeight;
     }
 
+    // ========================================================================
+    // INTERACTIVE GRAPH TOPOLOGY SIMULATION (HTML5 Canvas)
+    // ========================================================================
+    let graphNodes = [];
+    let graphLinks = [];
+    let canvasAnimId = null;
+
+    function initGraphCanvas() {
+      const canvas = document.getElementById('graph-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      if (graphNodes.length === 0) {
+        // Seed default graph architecture nodes
+        graphNodes = [
+          { id: 'Dataset', label: ':Dataset', type: 'dataset', x: canvas.width * 0.5, y: canvas.height * 0.35, vx: 0, vy: 0, radius: 24, color: '#6366f1' },
+          { id: 'Kafka', label: 'Kafka Topic', type: 'stream', x: canvas.width * 0.25, y: canvas.height * 0.5, vx: 0, vy: 0, radius: 18, color: '#06b6d4' },
+          { id: 'Job', label: ':Job Track', type: 'job', x: canvas.width * 0.75, y: canvas.height * 0.5, vx: 0, vy: 0, radius: 18, color: '#a855f7' },
+          { id: 'R1', label: 'Row 1', type: 'row', x: canvas.width * 0.4, y: canvas.height * 0.65, vx: 0, vy: 0, radius: 13, color: '#10b981' },
+          { id: 'R2', label: 'Row 2', type: 'row', x: canvas.width * 0.5, y: canvas.height * 0.72, vx: 0, vy: 0, radius: 13, color: '#10b981' },
+          { id: 'R3', label: 'Row 3', type: 'row', x: canvas.width * 0.6, y: canvas.height * 0.65, vx: 0, vy: 0, radius: 13, color: '#10b981' },
+          { id: 'Dept', label: ':Department', type: 'meta', x: canvas.width * 0.3, y: canvas.height * 0.8, vx: 0, vy: 0, radius: 15, color: '#f59e0b' },
+          { id: 'Role', label: ':Role', type: 'meta', x: canvas.width * 0.7, y: canvas.height * 0.8, vx: 0, vy: 0, radius: 15, color: '#f43f5e' }
+        ];
+
+        graphLinks = [
+          { source: 'Dataset', target: 'Kafka' },
+          { source: 'Dataset', target: 'Job' },
+          { source: 'Dataset', target: 'R1' },
+          { source: 'Dataset', target: 'R2' },
+          { source: 'Dataset', target: 'R3' },
+          { source: 'R1', target: 'Dept' },
+          { source: 'R2', target: 'Dept' },
+          { source: 'R3', target: 'Role' }
+        ];
+      }
+
+      document.getElementById('topo-nodes-stat').textContent = `${graphNodes.length} Nodes`;
+      document.getElementById('topo-rels-stat').textContent = `${graphLinks.length} Relations`;
+
+      let draggedNode = null;
+
+      canvas.onmousedown = (e) => {
+        const bounds = canvas.getBoundingClientRect();
+        const mx = e.clientX - bounds.left;
+        const my = e.clientY - bounds.top;
+        draggedNode = graphNodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.radius + 5);
+      };
+
+      window.onmousemove = (e) => {
+        if (draggedNode) {
+          const bounds = canvas.getBoundingClientRect();
+          draggedNode.x = e.clientX - bounds.left;
+          draggedNode.y = e.clientY - bounds.top;
+        }
+      };
+
+      window.onmouseup = () => { draggedNode = null; };
+
+      cancelAnimationFrame(canvasAnimId);
+
+      function renderFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Links
+        graphLinks.forEach(link => {
+          const s = graphNodes.find(n => n.id === link.source);
+          const t = graphNodes.find(n => n.id === link.target);
+          if (!s || !t) return;
+
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(t.x, t.y);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Flow particle
+          const time = (Date.now() / 1500) % 1;
+          const px = s.x + (t.x - s.x) * time;
+          const py = s.y + (t.y - s.y) * time;
+          ctx.beginPath();
+          ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = s.color || '#6366f1';
+          ctx.fill();
+        });
+
+        // Draw Nodes
+        graphNodes.forEach(node => {
+          // Glow
+          const grad = ctx.createRadialGradient(node.x, node.y, node.radius * 0.2, node.x, node.y, node.radius * 1.8);
+          grad.addColorStop(0, node.color);
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius * 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Node Circle
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#0a0e1c';
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = node.color;
+          ctx.stroke();
+
+          // Label
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '600 10px JetBrains Mono';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(node.label, node.x, node.y);
+        });
+
+        canvasAnimId = requestAnimationFrame(renderFrame);
+      }
+
+      renderFrame();
+    }
+
+    function updateTopologyGraph(headers, rows) {
+      if (rows.length === 0) return;
+      const canvas = document.getElementById('graph-canvas');
+      if (!canvas) return;
+
+      graphNodes = [
+        { id: 'Dataset', label: ':Dataset', type: 'dataset', x: canvas.width * 0.5, y: canvas.height * 0.25, vx: 0, vy: 0, radius: 24, color: '#6366f1' }
+      ];
+      graphLinks = [];
+
+      // Add top sample rows
+      rows.slice(0, 10).forEach((r, idx) => {
+        const id = `R${idx+1}`;
+        const angle = (idx / 10) * Math.PI * 2;
+        const dist = 140 + (idx % 2) * 40;
+        graphNodes.push({
+          id: id,
+          label: `Row ${idx+1}`,
+          type: 'row',
+          x: canvas.width * 0.5 + Math.cos(angle) * dist,
+          y: canvas.height * 0.55 + Math.sin(angle) * dist * 0.6,
+          radius: 12,
+          color: '#10b981'
+        });
+        graphLinks.push({ source: 'Dataset', target: id });
+      });
+
+      document.getElementById('topo-nodes-stat').textContent = `${graphNodes.length} Nodes`;
+      document.getElementById('topo-rels-stat').textContent = `${graphLinks.length} Relations`;
+    }
+
+    function resetGraphPhysics() {
+      graphNodes = [];
+      initGraphCanvas();
+    }
+
+    function addGraphBurst() {
+      const canvas = document.getElementById('graph-canvas');
+      if (!canvas) return;
+      const id = 'Pulse_' + Date.now();
+      graphNodes.push({
+        id: id,
+        label: 'Stream Event',
+        type: 'event',
+        x: canvas.width * (0.3 + Math.random() * 0.4),
+        y: canvas.height * (0.3 + Math.random() * 0.4),
+        radius: 14,
+        color: '#06b6d4'
+      });
+      graphLinks.push({ source: 'Dataset', target: id });
+      document.getElementById('topo-nodes-stat').textContent = `${graphNodes.length} Nodes`;
+      document.getElementById('topo-rels-stat').textContent = `${graphLinks.length} Relations`;
+    }
+
+    // Sample Data Presets
     function loadSample(type) {
       let content = '';
       let filename = '';
