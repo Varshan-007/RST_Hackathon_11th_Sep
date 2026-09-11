@@ -11,27 +11,9 @@ export default function Header({ health }) {
         </div>
         <div className="brand-text">
           <h1>Data In, Answers Out</h1>
-          <p>CSV Stream · Apache Kafka · Neo4j Graph DB · Grounded Chat</p>
         </div>
       </div>
 
-      <div className="pipeline-flow-bar">
-        <div className="pipeline-node">
-          <span>📄 CSV</span>
-        </div>
-        <span className="pipeline-arrow">→</span>
-        <div className="pipeline-node">
-          <span>⚡ Kafka (KRaft)</span>
-        </div>
-        <span className="pipeline-arrow">→</span>
-        <div className="pipeline-node">
-          <span>🕸️ Neo4j Graph</span>
-        </div>
-        <span className="pipeline-arrow">→</span>
-        <div className="pipeline-node">
-          <span>🤖 Grounded Chat</span>
-        </div>
-      </div>
 
       <div className="health-group">
         <HealthBadge label="API" ok={health.api} />
