@@ -35,10 +35,21 @@ class KafkaProducerClient:
 
     def is_connected(self) -> bool:
         if self._producer is None:
-            return self.connect(retries=1)
+            if not self.connect(retries=1):
+                return False
         try:
-            # Check bootstrap connectivity
-            return bool(self._producer.bootstrap_connected())
+            # Check cluster metadata and sender state
+            if self._producer._sender and self._producer._sender._client:
+                brokers = self._producer._sender._client.cluster.brokers()
+                if brokers:
+                    return True
+            
+            # Fallback socket connectivity test to Kafka broker
+            import socket
+            server = settings.kafka_bootstrap_servers.split(",")[0].strip()
+            host, port = server.split(":")
+            with socket.create_connection((host, int(port)), timeout=2.0):
+                return True
         except Exception:
             return False
 
