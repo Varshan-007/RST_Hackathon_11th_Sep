@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data In, Answers Out — CSV · Kafka · Neo4j Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --bg-primary: #0a0d14;
+      --bg-secondary: #101524;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(26, 34, 54, 0.85);
+      --bg-glass: rgba(16, 21, 36, 0.6);
+
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(99, 102, 241, 0.4);
+      --border-glow: rgba(99, 102, 241, 0.6);
+
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --accent-primary: #6366f1;
+      --accent-primary-hover: #4f46e5;
+      --accent-secondary: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --accent-glow: 0 0 25px rgba(99, 102, 241, 0.25);
+
+      --status-success: #10b981;
+      --status-warning: #f59e0b;
+      --status-error: #ef4444;
+      --status-info: #3b82f6;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(236, 72, 153, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    .app-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--accent-glow);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .pipeline-flow-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      font-size: 0.82rem;
+      flex-wrap: wrap;
+    }
+
+    .pipeline-node {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .pipeline-arrow {
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .health-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-glass);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .health-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .health-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .health-dot.ok {
+      background-color: var(--status-success);
+      box-shadow: 0 0 8px var(--status-success);
+    }
+
+    .health-dot.error {
+      background-color: var(--status-error);
+      box-shadow: 0 0 8px var(--status-error);
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Dropzone */
+    .dropzone-container {
+      border: 2px dashed var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.015);
+      transition: all 0.25s ease;
+    }
+
+    .dropzone-container:hover, .dropzone-container.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .dropzone-text h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .dropzone-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sample-files-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .sample-btn {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.55rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sample-btn:hover {
+      background: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+    }
+
+    /* Progress Tracker */
+    .progress-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .progress-status-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+    }
+
+    .progress-status-badge.queued {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--status-warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .progress-status-badge.loading {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--status-info);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .progress-status-badge.complete {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--status-success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .progress-status-badge.failed {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--status-error);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent-gradient);
+      border-radius: 9999px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-stats-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Preview Table */
+    .preview-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      max-height: 220px;
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      text-align: left;
+    }
+
+    .preview-table th {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.5rem 0.75rem;
+      color: var(--text-primary);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .preview-table td {
+      padding: 0.45rem 0.75rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      white-space: nowrap;
+    }
+
+    .preview-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Chat Section */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .chat-messages-area {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    .chat-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 0.5rem;
+      padding: 2rem;
+    }
+
+    .chat-bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 95%;
+      animation: fadeIn 0.25s ease forwards;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+    }
+
+    .chat-bubble.bot {
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .bubble-user-text {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md) var(--radius-md) 2px var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .bubble-bot-card {
+      background: rgba(16, 21, 36, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .bot-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .bot-answer-text {
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .grounded-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+    }
+
+    .grounded-badge.grounded {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--status-success);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .grounded-badge.ungrounded {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--status-warning);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .cypher-accordion {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .cypher-accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.45rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .cypher-accordion-header:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .cypher-code-block {
+      padding: 0.65rem 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #a5b4fc;
+      background: #080b12;
+      border-top: 1px solid var(--border-subtle);
+      white-space: pre-wrap;
+    }
+
+    .raw-result-block {
+      padding: 0.65rem 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #94a3b8;
+      background: #05070a;
+      border-top: 1px solid var(--border-subtle);
+      max-height: 130px;
+      overflow-y: auto;
+    }
+
+    .prompt-chips-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      padding: 0.5rem 0;
+    }
+
+    .prompt-chip {
+      font-size: 0.74rem;
+      padding: 0.3rem 0.65rem;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 9999px;
+      color: #c7d2fe;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .prompt-chip:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--accent-primary);
+      color: #fff;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+
+    .chat-input-field {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chat-input-field:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .chat-send-btn {
+      background: var(--accent-gradient);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0 1.25rem;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      box-shadow: var(--accent-glow);
+      transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .alert-box {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .alert-box.error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .alert-box.info {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>Data In, Answers Out</h1>
+          <p>CSV Stream · Apache Kafka · Neo4j Graph DB · Grounded Chatbot</p>
+        </div>
+      </div>
+
+      <div class="pipeline-flow-bar">
+        <div class="pipeline-node"><span>📄 CSV</span></div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-node"><span>⚡ Kafka (KRaft)</span></div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-node"><span>🕸️ Neo4j Graph</span></div>
+        <span class="pipeline-arrow">→</span>
+        <div class="pipeline-node"><span>🤖 Grounded Chat</span></div>
+      </div>
+
+      <div class="health-group">
+        <div class="health-pill" id="health-api-pill"><span class="health-dot" id="health-api-dot"></span><span>API</span></div>
+        <div class="health-pill" id="health-kafka-pill"><span class="health-dot" id="health-kafka-dot"></span><span>Kafka</span></div>
+        <div class="health-pill" id="health-neo4j-pill"><span class="health-dot" id="health-neo4j-dot"></span><span>Neo4j</span></div>
+      </div>
+    </header>
+
+    <!-- Alerts -->
+    <div id="alert-container"></div>
+
+    <main class="main-grid">
+      <!-- Ingest Section -->
+      <section class="glass-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Data Ingest Pipeline</span>
+          </h2>
+        </div>
+
+        <div id="dropzone" class="dropzone-container">
+          <input type="file" id="file-input" style="display:none;" accept=".csv,text/csv" />
+          <div class="dropzone-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dropzone-text" id="dropzone-text">
+            <h3>Drop your CSV file here, or click to browse</h3>
+            <p>Streams dynamic rows via Kafka directly into Neo4j graph</p>
+          </div>
+        </div>
+
+        <div class="sample-files-row">
+          <span style="font-size:0.72rem; color:var(--text-muted);">Quick Tests:</span>
+          <button class="sample-btn" onclick="loadSample('clean')">✨ Clean 20 Rows</button>
+          <button class="sample-btn" onclick="loadSample('volume')">🚀 1,000 Rows Volume</button>
+          <button class="sample-btn" onclick="loadSample('broken')">⚠️ Broken Ragged CSV</button>
+          <button class="sample-btn" onclick="loadSample('header_only')">🚫 Header-Only</button>
+          <button class="sample-btn" onclick="loadSample('empty')">📭 Empty (0B)</button>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div id="progress-container" style="display:none;"></div>
+
+        <!-- Preview Table -->
+        <div id="preview-container" style="display:none;"></div>
+      </section>
+
+      <!-- Chat Section -->
+      <section class="glass-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Grounded Graph Chatbot</span>
+          </h2>
+        </div>
+
+        <div class="chat-container">
+          <div class="chat-messages-area" id="chat-messages">
+            <div class="chat-empty-state" id="chat-empty">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.4"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+              <h4 style="color:var(--text-primary); font-weight:600;">Grounded Knowledge Assistant</h4>
+              <p style="font-size:0.82rem; max-width:360px;">Upload a CSV to unlock graph queries. Answers are strictly grounded in real Neo4j nodes.</p>
+            </div>
+          </div>
+
+          <div class="prompt-chips-row" id="prompt-chips" style="display:none;"></div>
+
+          <form id="chat-form" class="chat-input-bar">
+            <input type="text" id="chat-input" class="chat-input-field" placeholder="Upload a CSV first to start chatting..." disabled />
+            <button type="submit" id="chat-btn" class="chat-send-btn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Ask</span>
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    let activeJobId = null;
+    let pollInterval = null;
+    let detectedHeaders = [];
+    let isDatasetReady = false;
+
+    // Helper: Parse CSV in JS
+    function parseCSV(text) {
+      const lines = text.split(/\r\n|\n/).filter(l => l.trim().length > 0);
+      if (lines.length === 0) return { headers: [], rows: [] };
+      
+      const parseLine = (line) => {
+        const result = [];
+        let curr = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"' || char === "'") {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(curr.trim());
+            curr = '';
+          } else {
+            curr += char;
+          }
+        }
+        result.push(curr.trim());
+        return result;
+      };
+
+      const headers = parseLine(lines[0]);
+      const rows = lines.slice(1).map(parseLine);
+      return { headers, rows };
+    }
+
+    // Health Check Polling
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        const apiOk = true;
+        const kafkaOk = Boolean(data.kafka_connected);
+        const neo4jOk = Boolean(data.neo4j_connected);
+
+        document.getElementById('health-api-dot').className = 'health-dot ' + (apiOk ? 'ok' : 'error');
+        document.getElementById('health-kafka-dot').className = 'health-dot ' + (kafkaOk ? 'ok' : 'error');
+        document.getElementById('health-neo4j-dot').className = 'health-dot ' + (neo4jOk ? 'ok' : 'error');
+      } catch (err) {
+        document.getElementById('health-api-dot').className = 'health-dot error';
+        document.getElementById('health-kafka-dot').className = 'health-dot error';
+        document.getElementById('health-neo4j-dot').className = 'health-dot error';
+      }
+    }
+    checkHealth();
+    setInterval(checkHealth, 4000);
+
+    // Dropzone setup
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    function showAlert(msg, type='error') {
+      const container = document.getElementById('alert-container');
+      container.innerHTML = `<div class="alert-box ${type}">${msg}</div>`;
+      setTimeout(() => { container.innerHTML = ''; }, 6000);
+    }
+
+    function handleFile(file) {
+      document.getElementById('dropzone-text').innerHTML = `<h3>${file.name}</h3><p>${(file.size/1024).toFixed(1)} KB · Ingesting...</p>`;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const { headers, rows } = parseCSV(text);
+        detectedHeaders = headers;
+        renderPreview(headers, rows);
+        updatePromptChips(headers);
+      };
+      reader.readAsText(file);
+
+      uploadFile(file);
+    }
+
+    function renderPreview(headers, rows) {
+      if (!headers || headers.length === 0) return;
+      const previewCont = document.getElementById('preview-container');
+      previewCont.style.display = 'block';
+
+      let html = `<div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.4rem;">
+        <span style="font-weight:600;">⚡ Instant Client Preview</span>
+        <span>Showing ${Math.min(15, rows.length)} of ${rows.length} rows (${headers.length} columns)</span>
+      </div>
+      <div class="preview-wrapper">
+        <table class="preview-table">
+          <thead><tr><th>#</th>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${rows.slice(0, 15).map((row, i) => `<tr><td style="color:var(--text-muted);font-family:var(--font-mono)">${i+1}</td>${headers.map((_, c) => `<td>${row[c] || ''}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+      previewCont.innerHTML = html;
+    }
+
+    async function uploadFile(file) {
+      clearInterval(pollInterval);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/ingest', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) {
+          showAlert(data.detail || data.error || 'Ingest failed');
+          return;
+        }
+
+        activeJobId = data.job_id;
+        renderProgress({ job_id: data.job_id, status: 'queued', rows_total: data.rows_received, rows_loaded: 0, rows_failed: 0 });
+
+        pollInterval = setInterval(() => pollJobStatus(data.job_id), 400);
+      } catch (err) {
+        showAlert('Network error uploading file: ' + err.message);
+      }
+    }
+
+    async function pollJobStatus(jobId) {
+      try {
+        const res = await fetch(`/status?job_id=${jobId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        renderProgress(data);
+
+        if (data.status === 'complete') {
+          clearInterval(pollInterval);
+          isDatasetReady = true;
+          enableChat();
+          showAlert(`Dataset loaded into Neo4j graph successfully! (${data.rows_loaded} rows)`, 'info');
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          showAlert(`Ingestion failed with ${data.rows_failed} errors`, 'error');
+        }
+      } catch (err) {
+        console.warn('Status poll error:', err);
+      }
+    }
+
+    function renderProgress(job) {
+      const container = document.getElementById('progress-container');
+      container.style.display = 'block';
+      const processed = job.rows_loaded + job.rows_failed;
+      const pct = job.rows_total > 0 ? Math.min(100, Math.round((processed / job.rows_total) * 100)) : 0;
+
+      container.innerHTML = `
+        <div class="progress-card">
+          <div class="progress-header">
+            <span style="font-weight:600;font-size:0.88rem;">Job: <code style="font-family:var(--font-mono);color:var(--accent-secondary)">${job.job_id}</code></span>
+            <span class="progress-status-badge ${job.status}">${job.status}</span>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+          <div class="progress-stats-row">
+            <span><strong>${job.rows_loaded.toLocaleString()}</strong> of <strong>${job.rows_total.toLocaleString()}</strong> rows loaded (${pct}%)</span>
+            ${job.rows_failed > 0 ? `<span style="color:var(--status-error)">⚠️ ${job.rows_failed} failed</span>` : ''}
+          </div>
+        </div>`;
+    }
+
+    function enableChat() {
+      const input = document.getElementById('chat-input');
+      const btn = document.getElementById('chat-btn');
+      input.disabled = false;
+      input.placeholder = "Ask any question about the graph data...";
+      btn.disabled = false;
+    }
+
+    function updatePromptChips(headers) {
+      const chipsCont = document.getElementById('prompt-chips');
+      chipsCont.style.display = 'flex';
+      const sampleCol = headers.find(h => ['department', 'group', 'city', 'role', 'status'].includes(h.toLowerCase())) || headers[0] || 'department';
+      
+      const prompts = [
+        "How many rows in total?",
+        `List distinct values of ${sampleCol}`,
+        `How many rows belong to the Billing group?`,
+        "How many rows per department?",
+        "What columns are in the dataset?",
+        "Who is the president of France?"
+      ];
+
+      chipsCont.innerHTML = prompts.map(p => `<button type="button" class="prompt-chip" onclick="askQuestion('${p}')">${p}</button>`).join('');
+    }
+
+    // Chat
+    document.getElementById('chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const q = input.value.trim();
+      if (!q) return;
+      askQuestion(q);
+      input.value = '';
+    });
+
+    async function askQuestion(q) {
+      const chatMessages = document.getElementById('chat-messages');
+      const emptyState = document.getElementById('chat-empty');
+      if (emptyState) emptyState.remove();
+
+      chatMessages.innerHTML += `<div class="chat-bubble user"><div class="bubble-user-text">${q}</div></div>`;
+      
+      const botPlaceholderId = 'bot-' + Date.now();
+      chatMessages.innerHTML += `<div class="chat-bubble bot" id="${botPlaceholderId}"><div class="bubble-bot-card"><span style="font-size:0.82rem;color:var(--text-secondary)">⚡ Querying graph...</span></div></div>`;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q })
+        });
+        const data = await res.json();
+        
+        const card = document.getElementById(botPlaceholderId);
+        if (card) {
+          const groundedBadge = data.grounded 
+            ? `<span class="grounded-badge grounded">✅ Grounded</span>` 
+            : `<span class="grounded-badge ungrounded">⚠️ Not Grounded</span>`;
+
+          let cypherBlock = '';
+          if (data.cypher) {
+            cypherBlock = `
+              <div class="cypher-accordion">
+                <div class="cypher-accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                  <span>🔍 View Cypher & Raw Graph Result</span>
+                  <span>▼</span>
+                </div>
+                <div style="display:none;">
+                  <div class="cypher-code-block">${data.cypher}</div>
+                  ${data.result && data.result.length > 0 ? `<div class="raw-result-block"><pre>${JSON.stringify(data.result, null, 2)}</pre></div>` : ''}
+                </div>
+              </div>`;
+          }
+
+          card.innerHTML = `
+            <div class="bubble-bot-card">
+              <div class="bot-card-header">
+                <span style="font-size:0.8rem; font-weight:600; color:var(--text-primary)">Graph Assistant</span>
+                ${groundedBadge}
+              </div>
+              <div class="bot-answer-text">${data.answer || data.detail}</div>
+              ${cypherBlock}
+            </div>`;
+        }
+      } catch (err) {
+        const card = document.getElementById(botPlaceholderId);
+        if (card) card.innerHTML = `<div class="bubble-bot-card"><span style="color:var(--status-error)">Error: ${err.message}</span></div>`;
+      }
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function loadSample(type) {
+      let content = '';
+      let filename = '';
+      if (type === 'clean') {
+        filename = 'small_clean.csv';
+        content = `id,name,department,role,salary,city,status
+1,Alice Johnson,Engineering,Senior Software Engineer,125000,San Francisco,active
+2,Bob Smith,Engineering,Software Engineer,95000,San Francisco,active
+3,Carol Williams,Marketing,Marketing Lead,105000,New York,active
+4,David Brown,Billing,Finance Manager,115000,Chicago,active
+5,Emma Davis,Billing,Billing Analyst,75000,Chicago,active
+6,Frank Miller,Billing,Billing Specialist,68000,Chicago,active
+7,Grace Wilson,Sales,Account Executive,90000,Austin,active
+8,Henry Taylor,Sales,Sales Representative,70000,Austin,inactive
+9,Ivy Anderson,Engineering,DevOps Engineer,110000,Seattle,active
+10,Jack Thomas,Support,Support Specialist,60000,Denver,active
+11,Karen Jackson,Support,Support Lead,80000,Denver,active
+12,Leo White,Engineering,Frontend Developer,92000,San Francisco,active
+13,Mia Harris,Marketing,Content Strategist,82000,New York,active
+14,Noah Martin,Sales,Sales Manager,120000,Austin,active
+15,Olivia Thompson,Billing,Senior Billing Analyst,85000,Chicago,active
+16,Paul Garcia,Support,Support Specialist,62000,Denver,inactive
+17,Quinn Martinez,Engineering,QA Engineer,88000,Seattle,active
+18,Rachel Robinson,Marketing,SEO Specialist,78000,New York,active
+19,Sam Clark,Billing,Billing Analyst,74000,Chicago,active
+20,Tina Rodriguez,Engineering,Engineering Manager,145000,San Francisco,active`;
+      } else if (type === 'volume') {
+        filename = 'medium_volume.csv';
+        const rows = ['id,name,department,role,salary,city,status'];
+        const depts = ['Engineering', 'Marketing', 'Billing', 'Sales', 'Support'];
+        const cities = ['San Francisco', 'New York', 'Chicago', 'Austin', 'Seattle'];
+        for (let i = 1; i <= 1000; i++) {
+          rows.push(`${i},Employee ${i},${depts[i % depts.length]},Specialist,${70000 + (i*50)%60000},${cities[i % cities.length]},active`);
+        }
+        content = rows.join('\n');
+      } else if (type === 'broken') {
+        filename = 'broken_ragged.csv';
+        content = `id,name,department,role,salary,city,status
+1,Broken Row One,Only,Two
+2,Broken Row Two,Engineering,Developer,90000,San Francisco,active,extra1
+3,"Unclosed quote,Broken Department,100000
+4,Valid Row,Marketing,Lead,95000,New York,active`;
+      } else if (type === 'header_only') {
+        filename = 'header_only.csv';
+        content = 'id,name,department,role,salary,city,status\n';
+      } else if (type === 'empty') {
+        filename = 'empty.csv';
+        content = '';
+      }
+
+      const file = new File([content], filename, { type: 'text/csv' });
+      handleFile(file);
+    }
+  </script>
+</body>
+</html>

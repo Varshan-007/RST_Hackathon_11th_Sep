@@ -1,0 +1,21 @@
+id,name,department,role,salary,city,status
+1,Alice Johnson,Engineering,Senior Software Engineer,125000,San Francisco,active
+2,Bob Smith,Engineering,Software Engineer,95000,San Francisco,active
+3,Carol Williams,Marketing,Marketing Lead,105000,New York,active
+4,David Brown,Billing,Finance Manager,115000,Chicago,active
+5,Emma Davis,Billing,Billing Analyst,75000,Chicago,active
+6,Frank Miller,Billing,Billing Specialist,68000,Chicago,active
+7,Grace Wilson,Sales,Account Executive,90000,Austin,active
+8,Henry Taylor,Sales,Sales Representative,70000,Austin,inactive
+9,Ivy Anderson,Engineering,DevOps Engineer,110000,Seattle,active
+10,Jack Thomas,Support,Support Specialist,60000,Denver,active
+11,Karen Jackson,Support,Support Lead,80000,Denver,active
+12,Leo White,Engineering,Frontend Developer,92000,San Francisco,active
+13,Mia Harris,Marketing,Content Strategist,82000,New York,active
+14,Noah Martin,Sales,Sales Manager,120000,Austin,active
+15,Olivia Thompson,Billing,Senior Billing Analyst,85000,Chicago,active
+16,Paul Garcia,Support,Support Specialist,62000,Denver,inactive
+17,Quinn Martinez,Engineering,QA Engineer,88000,Seattle,active
+18,Rachel Robinson,Marketing,SEO Specialist,78000,New York,active
+19,Sam Clark,Billing,Billing Analyst,74000,Chicago,active
+20,Tina Rodriguez,Engineering,Engineering Manager,145000,San Francisco,active

@@ -1,0 +1,5 @@
+id,name,department,role,salary,city,status
+1,Broken Row One,Only,Two,Values
+2,Broken Row Two,Engineering,Developer,90000,San Francisco,active,extra_value_1,extra_value_2
+3,"Unclosed quote,Broken Department,100000
+4,Valid Row,Marketing,Lead,95000,New York,active
